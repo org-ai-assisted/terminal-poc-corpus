@@ -117,8 +117,16 @@ def selftest_pyte():
         _log('  FAIL  pyte self-test timed out')     # a hang is a failure, not a hung harness
         return False
     ok = proc.returncode == 0
-    tail = (proc.stdout or proc.stderr).strip().splitlines()[-1:] or ['(no output)']
+    output = (proc.stdout or proc.stderr).strip().splitlines()
+    tail = output[-1:] or ['(no output)']
     _log('  %s  pyte self-test: %s' % ('PASS' if ok else 'FAIL', tail[0]))
+    if not ok:
+        # Name the failing tests. The summary line alone ("2 failed, 115 passed")
+        # is not actionable: it cannot be told apart from a real parser regression
+        # without re-running the suite by hand.
+        for line in output:
+            if line.startswith(('FAILED', 'ERROR')):
+                _log('        %s' % line)
     return ok
 
 

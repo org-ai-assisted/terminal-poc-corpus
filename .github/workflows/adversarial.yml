@@ -2,6 +2,15 @@
 # runners) -- the harness refuses to decode live payloads on a plain host. It leads with
 # the --test-canary positive control (fail loud if the machinery is broken) and asserts
 # secure-terminal never reflects any corpus PoC back to the pty.
+#
+# Runs in a debian:trixie-slim container, NOT bare ubuntu-latest. Two reasons:
+#   - secure-terminal targets current Debian, which is what the dist-ai reusable
+#     tests it on.
+#   - ubuntu-24.04 ships python3-wcwidth 0.2.5, whose Unicode data measures a ZWJ
+#     emoji sequence as width 6 where 0.2.13 gives 2. pyte's own
+#     test_display_multi_char_emoji / test_display_complex_emoji assert the modern
+#     width, so Part A of the conformance harness failed on stale distro data
+#     rather than on any parser defect -- red since 2026-07-20 for that reason.
 name: adversarial-corpus
 
 on:
@@ -16,7 +25,17 @@ permissions:
 jobs:
   adversarial:
     runs-on: ubuntu-latest
+    container:
+      image: debian:trixie-slim
+    timeout-minutes: 30
     steps:
+      # actions/checkout needs git present in the container, so this precedes it.
+      - name: Install checkout dependencies (apt only)
+        run: |
+          apt-get update --quiet
+          apt-get install --yes --no-install-recommends ca-certificates git
+          git config --global --add safe.directory '*'
+
       - name: Check out the corpus
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
       - name: Check out secure-terminal (public)
@@ -25,11 +44,15 @@ jobs:
           repository: secure-terminal/secure-terminal
           path: _secure-terminal
       - name: Install dependencies
+        # python3-pyqt6.qtmultimedia is REQUIRED, not optional: usr/bin/secure-terminal
+        # preflight-checks its runtime dependencies and exits 1 naming the first
+        # missing one, so without it the app never starts, --test-canary never fires,
+        # and the harness refuses to trust the run.
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            python3-pyqt6 python3-pyte python3-yaml python3-jsonschema \
-            python3-pytest build-essential libtool-bin perl pkg-config
+          apt-get install --yes --no-install-recommends \
+            python3 python3-pyqt6 python3-pyqt6.qtmultimedia python3-pyte \
+            python3-yaml python3-jsonschema python3-pytest \
+            build-essential libtool-bin perl pkg-config
       - name: Validate the corpus (schema + sanitization lint)
         run: python3 tools/validate.py
       - name: Positive control + adversarial corpus test
