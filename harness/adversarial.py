@@ -163,11 +163,19 @@ def _obs_writeback(payload):
 
 
 def _obs_render_strip(payload):
-    """secure-terminal's line-mode rendered text (strip mode, its safe default)."""
+    """secure-terminal's line-mode rendered text.
+
+    'box' is the strictest mode (every neutralized byte becomes one placeholder).
+    This said "strip" -- a mode name that no longer exists, so render_output fell
+    through its if/elif chain to the same behaviour BY ACCIDENT rather than by
+    request. It also called it "its safe default", which is wrong: the default is
+    'detail'. A dead alias silently testing the right thing is one rename away from
+    silently testing the wrong thing.
+    """
     if ST_PKG and ST_PKG not in sys.path:
         sys.path.insert(0, ST_PKG)
     from secure_terminal.sanitize import render_output            # noqa: E402
-    return render_output(payload.decode('utf-8', 'replace'), 'strip')
+    return render_output(payload.decode('utf-8', 'replace'), 'box')
 
 
 def _obs_clipboard(payload):
@@ -228,7 +236,7 @@ def _obs_timing(payload):
     import time as _time                                          # noqa: E402
     start = _time.monotonic()
     try:
-        render_output(payload.decode('utf-8', 'replace'), 'strip')
+        render_output(payload.decode('utf-8', 'replace'), 'box')
     except Exception:                      # pylint: disable=broad-except -- a crash is a hit
         return (0.0, True)
     return (_time.monotonic() - start, False)
