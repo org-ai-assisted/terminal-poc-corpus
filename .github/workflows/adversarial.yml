@@ -59,9 +59,9 @@ jobs:
           git config --global --add safe.directory '*'
 
       - name: Check out the corpus
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
       - name: Check out secure-terminal (public)
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           repository: secure-terminal/secure-terminal
           path: _secure-terminal
