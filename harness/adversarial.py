@@ -290,25 +290,19 @@ def _det_crafted(text):
 
 
 def _det_composite(text):
-    # a hit: ANY embedded class survived the render -- the OSC-0 title-set or DEC
-    # charset-shift (crafted), an alternate-screen enable (screen-hijack), an OSC 8
-    # hyperlink / OSC 9 notification / OSC 52 clipboard escape, a DSR cursor-report query
-    # (output->input reflection), any surviving C0/C1 control byte (except newline), or
-    # any raw non-ASCII code point (a surviving homoglyph, bidi control,
-    # zero-width/combining/fullwidth byte, or foreign char). One assertion covers every
-    # class the tui-showcase file carries: a regression in any single class re-introduces
-    # one of these, so the check fails.
-    # a surviving ESC (0x1b) means an escape was NOT stripped; NUL (0x00) is a truncation
-    # byte. NOTE \b \t \n \r are DELIBERATELY honored by secure-terminal as line-local
+    # a hit: ANY embedded class survived the render. A surviving ESC (0x1b) covers every
+    # escape class at once -- OSC-0 title, DEC charset shift, alt-screen enable, OSC 8/9/52,
+    # and the DSR cursor-report query -- since each carries an ESC; NUL (0x00) is a
+    # truncation byte; and _det_deception catches any surviving non-ASCII code point
+    # (homoglyph, bidi control, zero-width, combining, fullwidth, foreign). So one
+    # assertion covers every class the tui-showcase file carries: a regression in any
+    # single class re-introduces an ESC, a NUL, or a non-ASCII byte.
+    #
+    # NOTE \b \t \n \r are DELIBERATELY honored by secure-terminal's widget as line-local
     # edits (a \r overwrites only the CURRENT line, never an earlier one -- vertical
-    # addressing IS stripped), so they are NOT flagged here; the stricter stcat path is
-    # what strips \r, and the CR/backspace class is not claimed neutralized by this widget
-    # render (see expected.md).
-    if '\x1b' in text or '\x00' in text:
-        return True
-    return (_det_crafted(text) or _det_altscreen(text) or _det_deception(text)
-            or '\x1b]8;' in text or '\x1b]9;' in text or '\x1b]52;' in text
-            or '\x1b[6n' in text)
+    # addressing IS stripped), so they are NOT flagged; the CR+erase class is neutralized
+    # by the stricter stcat path, not this widget render (see expected.md).
+    return '\x1b' in text or '\x00' in text or _det_deception(text)
 
 
 def _det_paste(text):

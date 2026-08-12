@@ -27,13 +27,22 @@ names a class and shows a live example of it:
 - Notification (OSC 9)  -- a desktop notification with safe wording;
 - Title hijack (OSC 0)  -- sets the window title (labeled; effect is the title bar);
 - Alt-screen (?1049h)   -- switches to the alternate screen (labeled; effect is the screen);
+- Clipboard write (OSC 52) -- sets the clipboard to a labeled `SAFE-DEMO` note (harmless,
+  recoverable -- it overwrites whatever was on the clipboard);
+- Output->input (DSR)   -- a cursor-position query the terminal answers by typing its own
+  coordinates onto the shell input (coords only, no newline -- "output became input",
+  harmlessly);
 - Honest foreign (Greek)-- real Greek text -- the NON-attack contrast case.
 
-The board also states, honestly, which classes it deliberately does NOT fire because they
-reach into your session -- clipboard write (OSC 52) and input reflection / answerback --
-and that crash/decoder classes are out of scope; and it tells the reader to run `reset`
-(the title, alt-screen and notification are changed on purpose). There is no executable,
-destructive, clipboard-altering or input-injecting content.
+The board is honest about what it fires and what it does not. It DOES fire OSC 52 (with a
+harmless labeled note) and the DSR cursor-report reflection (coords only, no newline), and
+says so. It deliberately does NOT fire the RCE reflection variant (an attacker-controlled
+reflected COMMAND) -- that is shown by a separate, throwaway-terminal-only repro: cat it,
+then `ls /tmp/test-demo-file`, which the reflected `touch` created -- nor the crash/decoder
+classes (out of scope). The title, alt-screen, clipboard and notification are changed on
+purpose; a plaintext warning is the file's FIRST bytes, the board runs on the alternate
+screen, and the footer tells the reader to run `reset` + Ctrl-C and re-copy the clipboard.
+There is no destructive content and nothing auto-executes.
 
 ## Verification (composite-multiclass)
 
@@ -41,27 +50,36 @@ secure-terminal in CLI mode strips every escape and boxes every non-ASCII byte. 
 detector runs secure-terminal's `render_output(payload, 'box')` and reports a HIT if ANY
 embedded class survived, i.e. if the rendered text still contains:
 
-- the OSC-0 title-set (`ESC ] 0 ;`) or the DEC charset-shift (`ESC ( 0`), OR
-- an alternate-screen enable (`ESC [ ? 1049 h` / `?1047h` / `?47h`), OR
-- an OSC 8 hyperlink (`ESC ] 8 ;`) or OSC 9 notification (`ESC ] 9 ;`) escape, OR
+- any ESC (`0x1b`) -- one check that covers EVERY escape class, since each carries an ESC:
+  the OSC-0 title-set, the DEC charset-shift (`ESC ( 0`), the alt-screen enable
+  (`ESC [ ? 1049 h`), and the OSC 8 / OSC 9 / OSC 52 and DSR (`ESC [ 6 n`) escapes; OR
+- a NUL (`0x00`, a truncation byte); OR
 - any non-ASCII code point (a surviving homoglyph, bidi control, zero-width, combining,
   fullwidth, or foreign character).
 
-A neutralized render is pure ASCII with none of those escapes: the title is untouched,
-the terminal never leaves the primary screen, the hyperlink/notification escapes are gone,
-the line-drawing shows as literal text, and every hidden/reordered/look-alike byte is an
-inert boxed placeholder. Because a regression in ANY single class re-introduces a
-surviving escape or non-ASCII byte, this one assertion covers all of them: it fails if
-even one class is silently passed through.
+A neutralized render is pure ASCII with no ESC and no NUL: the title is untouched, the
+terminal never leaves the primary screen, the hyperlink/notification/clipboard/reflection
+escapes are gone, the line-drawing shows as literal text, and every hidden/reordered/
+look-alike byte is an inert boxed placeholder. Because a regression in ANY single class
+re-introduces an ESC, a NUL, or a non-ASCII byte, this one assertion covers all of them:
+it fails if even one class is silently passed through.
 
-Two rows are present for education but are NOT caught by this detector, and the board is
+Three rows are present for education but are NOT caught by this detector, and the board is
 honest about why:
 
 - the ASCII look-alike (`rn` for `m`) is pure ASCII -- there is nothing to strip, and a
   Unicode-aware tool cannot catch it; only reading character by character does;
 - the OSC 8 link's visible-text-vs-target mismatch (does the visible text differ from the
   resolved target?) is conformance-checked by the dedicated `osc8-hyperlink-phishing` PoC,
-  which uses a different observable; here only the escape's survival is asserted.
+  which uses a different observable; here only the escape's survival is asserted;
+- the control-byte CR+erase row uses a lone `\r`, which secure-terminal's WIDGET
+  deliberately HONORS as a line-local edit (a `\r` overwrites only the line being written,
+  never an earlier one -- vertical addressing IS stripped). So after the escape colour is
+  removed the `\r`+`OK` can still overwrite `FAILED` on that one line: the widget render
+  does NOT neutralize this class, and this detector does not claim it does. The stricter
+  `stcat` path is what strips `\r` and reveals both; the board's subtitle credits `stcat`,
+  not the widget, for this row. This matches the documented secure-terminal limitation
+  ("erase-in-line is honoured, so a program can overwrite the line it is writing").
 
 ## Reference
 

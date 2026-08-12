@@ -24,11 +24,15 @@ expected_effect: >-
   behind a green OK, hidden-by-colour (SGR fg==bg), a DEC line-drawing charset shift, an
   OSC 8 hyperlink whose visible text (example.com) differs from its target
   (example.org), an OSC 9 desktop notification (safe wording), an OSC 0 title hijack, a
-  CSI ?1049h alternate-screen switch, and real Greek text as the NON-attack contrast
-  case. The board states which classes it deliberately does NOT fire because they reach
-  into your session (OSC 52 clipboard write, input reflection/answerback) and tells the
-  reader to run reset. In a traditional terminal the tricks are invisible; a safe tool
-  reveals them. secure-terminal in CLI mode strips every escape and boxes every non-ASCII
+  CSI ?1049h alternate-screen switch, an OSC 52 clipboard write (a harmless labeled
+  SAFE-DEMO note), a DSR cursor-report reflection (the terminal types its own coords onto
+  the shell input -- coords only, no newline), and real Greek text as the NON-attack
+  contrast case. The board fires OSC 52 and the DSR reflection and says so; it deliberately
+  does NOT fire the RCE reflection variant (an attacker-controlled reflected command --
+  shown by a separate throwaway-terminal repro that creates /tmp/test-demo-file) nor the
+  crash/decoder classes, and it tells the reader to run reset + Ctrl-C and re-copy the
+  clipboard. In a traditional terminal the tricks are invisible; a safe tool reveals them.
+  secure-terminal in CLI mode strips every escape and boxes every non-ASCII
   byte, so render_output carries no OSC/charset/alt-screen/hyperlink/notification escape
   and no surviving non-ASCII code point. Verification (composite-multiclass) asserts NONE
   of the embedded classes survive: a hit if ANY of the OSC-0/charset escape, the
@@ -37,14 +41,19 @@ expected_effect: >-
   education but not conformance-checked -- a Unicode-aware tool cannot catch rn->m; only
   reading character by character does. The OSC 8 link's visible-text-vs-target mismatch is
   likewise conformance-checked by the dedicated osc8-hyperlink-phishing PoC (a different
-  observable); here the escape's mere survival is what this check covers.
+  observable); here the escape's mere survival is what this check covers. The control-byte
+  CR+erase row is likewise not neutralized by the widget render (secure-terminal HONORS a
+  line-local \r by design); the stricter stcat path strips it, so this detector does not
+  claim the widget reveals it -- see expected.md.
 canary: "terminal attack-class demo (safe)"
 modified: true
 original_ref: >-
   A composite assembled by this corpus for the secure-terminal comparison, combining the
   already-catalogued single-class PoCs (crafted-hostile-log title+colour+charset,
   trojan-source-bidi, homoglyph, alt-screen-hijack, notification-spoof, osc8-hyperlink-
-  phishing) plus zero-width/BOM, combining, fullwidth, an ASCII look-alike and honest
-  foreign text into ONE self-labeling educational board. Every row's wording is benign
-  safe-demonstration text; no destructive, executable, clipboard-altering or
-  input-injecting content is present, and the board says so.
+  phishing, osc52-clipboard-write) plus zero-width/BOM, combining, fullwidth, an ASCII
+  look-alike, a DSR cursor-report reflection and honest foreign text into ONE self-labeling
+  educational board. Every row's wording is benign safe-demonstration text. It DOES fire
+  OSC 52 (a harmless labeled clipboard note) and the DSR reflection (coords only, no
+  newline); nothing auto-executes -- the RCE reflection variant is a separate
+  throwaway-terminal repro -- and the board says all of this.
