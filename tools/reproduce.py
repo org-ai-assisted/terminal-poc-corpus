@@ -108,10 +108,14 @@ def _safety_note(mode, out):
             'escape, so the guard cannot be broken.\n' % q)
     return (
         'SAFE: this class touches display / input / clipboard / notification state only\n'
-        'and carries no destructive action; recover a traditional terminal with `reset`.\n\n'
+        'and carries no destructive action. `reset` restores the terminal DISPLAY\n'
+        '(charset, colour, cursor, alt-screen); a hijacked window/tab TITLE or an\n'
+        "overwritten CLIPBOARD is external state `reset` does NOT undo -- clear a title\n"
+        "with  printf '\\033]0;\\007'  and re-copy to replace the clipboard (or just use a\n"
+        'throwaway terminal you discard).\n\n'
         'SEE the difference (in a THROWAWAY terminal):\n'
         '  cat %s          # a traditional terminal renders the attack\n'
-        '  reset\n'
+        '  reset            # restores the display\n'
         'Then feed the same file to secure-terminal in CLI mode -- it renders it inert.\n\n'
         'To verify neutralization automatically -- for THIS mode and every other -- run\n'
         'the sandbox harness against secure-terminal (no terminal-under-test needed):\n'
