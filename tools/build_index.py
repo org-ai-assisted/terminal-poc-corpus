@@ -39,7 +39,9 @@ def main():
         'count': len(rows),
         'pocs': rows,
     }
-    print(json.dumps(index, indent=2, ensure_ascii=True))
+    # sort_keys matches the org pretty-format-json gate, so a regenerated index
+    # passes pre-push-static without a manual reformat pass.
+    print(json.dumps(index, indent=2, ensure_ascii=True, sort_keys=True))
     return 0
 
 

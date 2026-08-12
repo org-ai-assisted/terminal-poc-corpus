@@ -1,24 +1,62 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/secure-terminal/terminal-poc-corpus/schema/poc.schema.json",
-  "title": "terminal-poc-corpus PoC record",
-  "description": "Metadata + attribution for one terminal-attack proof-of-concept. The payload itself lives hex-encoded in the sibling payload.hex, never in this file.",
-  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "required": [
-    "id", "title", "class", "author", "source_url", "archive_url",
-    "date", "severity", "mechanism", "payload_encoding", "expected_effect",
-    "canary", "modified"
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "modified": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "original_ref"
+        ]
+      }
+    }
   ],
+  "description": "Metadata + attribution for one terminal-attack proof-of-concept. The payload itself lives hex-encoded in the sibling payload.hex, never in this file.",
   "properties": {
-    "id": {
-      "type": "string",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-      "description": "Stable slug; must equal the containing directory name."
+    "affected": {
+      "default": [],
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "tested": {
+            "type": "boolean"
+          },
+          "versions_fixed": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "type": "object"
+      },
+      "type": "array"
     },
-    "title": { "type": "string", "minLength": 1 },
+    "archive_url": {
+      "description": "Web-archive snapshot of source_url, or the literal 'TODO' until captured.",
+      "type": "string"
+    },
+    "author": {
+      "description": "Researcher / credit.",
+      "minLength": 1,
+      "type": "string"
+    },
+    "canary": {
+      "description": "The unique marker token used to detect a hit for this verification mode (the command's marker file, the clipboard token, the reordered/homoglyph token, or the phishing target marker).",
+      "minLength": 1,
+      "type": "string"
+    },
     "class": {
-      "type": "string",
       "enum": [
         "answerback-injection",
         "title-report-echoback",
@@ -41,85 +79,120 @@
         "cursor-addressing-spoof",
         "notification-spoof",
         "title-change-dos",
-        "parser-dos"
-      ]
+        "parser-dos",
+        "alt-screen-hijack",
+        "crafted-hostile-log"
+      ],
+      "type": "string"
     },
     "cve": {
-      "type": "array",
-      "items": { "type": "string", "pattern": "^CVE-[0-9]{4}-[0-9]{4,}$" },
-      "default": []
-    },
-    "affected": {
-      "type": "array",
+      "default": [],
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["product"],
-        "properties": {
-          "product": { "type": "string" },
-          "versions_fixed": { "type": "string" },
-          "tested": { "type": "boolean" }
-        }
+        "pattern": "^CVE-[0-9]{4}-[0-9]{4,}$",
+        "type": "string"
       },
-      "default": []
+      "type": "array"
     },
-    "author": { "type": "string", "minLength": 1, "description": "Researcher / credit." },
-    "source_url": { "type": "string", "format": "uri" },
-    "archive_url": {
-      "type": "string",
-      "description": "Web-archive snapshot of source_url, or the literal 'TODO' until captured."
-    },
-    "date": { "type": "string", "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$", "description": "Disclosure / publication date (ISO 8601, year or full)." },
-    "severity": {
-      "type": "string",
-      "enum": ["rce", "injection", "exfil", "spoof", "dos"],
-      "description": "Coarse impact tag."
-    },
-    "mechanism": {
-      "type": "string",
-      "minLength": 1,
-      "description": "The primitive, e.g. 'title-set-then-report', 'decrqss-reflection'."
-    },
-    "references": {
-      "type": "array",
-      "items": { "type": "string" },
-      "default": []
-    },
-    "payload_encoding": {
-      "type": "string",
-      "enum": ["hex"],
-      "description": "Payloads are ALWAYS hex at rest (read-safe). See SAFETY.md."
+    "date": {
+      "description": "Disclosure / publication date (ISO 8601, year or full).",
+      "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$",
+      "type": "string"
     },
     "expected_effect": {
-      "type": "string",
+      "description": "Worded description of what a vulnerable terminal does with the payload.",
       "minLength": 1,
-      "description": "Worded description of what a vulnerable terminal does with the payload."
+      "type": "string"
     },
-    "verification": {
-      "type": "string",
-      "enum": ["canary-command", "display-deception", "clipboard-exfil", "hyperlink-mismatch", "denial-of-service", "decoder-crash", "paste-bypass", "reflection", "notification-spoof", "charset-deception", "cursor-spoof"],
-      "default": "canary-command",
-      "description": "How a hit is detected. canary-command: a fired injection runs the safe canary command (writes the marker). display-deception: the rendered text differs from the logical text (bidi/homoglyph/charset/cursor). clipboard-exfil: the payload silently sets the clipboard to the canary token. hyperlink-mismatch: the visible link text differs from its target. denial-of-service: the payload tries to hang/exhaust the terminal (a secure terminal processes it in bounded time). decoder-crash: a decoder (Sixel/ReGIS) overflow (a secure terminal never runs the decoder). paste-bypass: an escape that breaks the bracketed-paste guard (a secure terminal's paste sanitizer strips it). Non-command modes carry no directly-executable shell command, so they are inherently harmless at rest."
+    "id": {
+      "description": "Stable slug; must equal the containing directory name.",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "type": "string"
     },
-    "canary": {
-      "type": "string",
+    "mechanism": {
+      "description": "The primitive, e.g. 'title-set-then-report', 'decrqss-reflection'.",
       "minLength": 1,
-      "description": "The unique marker token used to detect a hit for this verification mode (the command's marker file, the clipboard token, the reordered/homoglyph token, or the phishing target marker)."
+      "type": "string"
     },
     "modified": {
-      "type": "boolean",
-      "description": "true if the corpus adapted the upstream PoC (e.g. canary-forked a destructive action). Anything with a harmful original MUST be true."
+      "description": "true if the corpus adapted the upstream PoC (e.g. canary-forked a destructive action). Anything with a harmful original MUST be true.",
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "string"
     },
     "original_ref": {
-      "type": "string",
-      "description": "Pointer to the unmodified upstream form when modified is true."
+      "description": "Pointer to the unmodified upstream form when modified is true.",
+      "type": "string"
     },
-    "notes": { "type": "string" }
-  },
-  "allOf": [
-    {
-      "if": { "properties": { "modified": { "const": true } } },
-      "then": { "required": ["original_ref"] }
+    "payload_encoding": {
+      "description": "Payloads are ALWAYS hex at rest (read-safe). See SAFETY.md.",
+      "enum": [
+        "hex"
+      ],
+      "type": "string"
+    },
+    "references": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "severity": {
+      "description": "Coarse impact tag.",
+      "enum": [
+        "rce",
+        "injection",
+        "exfil",
+        "spoof",
+        "dos"
+      ],
+      "type": "string"
+    },
+    "source_url": {
+      "format": "uri",
+      "type": "string"
+    },
+    "title": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "verification": {
+      "default": "canary-command",
+      "description": "How a hit is detected. canary-command: a fired injection runs the safe canary command (writes the marker). display-deception: the rendered text differs from the logical text (bidi/homoglyph/charset/cursor). clipboard-exfil: the payload silently sets the clipboard to the canary token. hyperlink-mismatch: the visible link text differs from its target. denial-of-service: the payload tries to hang/exhaust the terminal (a secure terminal processes it in bounded time). decoder-crash: a decoder (Sixel/ReGIS) overflow (a secure terminal never runs the decoder). paste-bypass: an escape that breaks the bracketed-paste guard (a secure terminal's paste sanitizer strips it). Non-command modes carry no directly-executable shell command, so they are inherently harmless at rest.",
+      "enum": [
+        "canary-command",
+        "display-deception",
+        "clipboard-exfil",
+        "hyperlink-mismatch",
+        "denial-of-service",
+        "decoder-crash",
+        "paste-bypass",
+        "reflection",
+        "notification-spoof",
+        "charset-deception",
+        "cursor-spoof",
+        "screen-hijack",
+        "crafted-composite"
+      ],
+      "type": "string"
     }
-  ]
+  },
+  "required": [
+    "id",
+    "title",
+    "class",
+    "author",
+    "source_url",
+    "archive_url",
+    "date",
+    "severity",
+    "mechanism",
+    "payload_encoding",
+    "expected_effect",
+    "canary",
+    "modified"
+  ],
+  "title": "terminal-poc-corpus PoC record",
+  "type": "object"
 }

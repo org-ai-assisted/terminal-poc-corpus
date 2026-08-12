@@ -1,234 +1,259 @@
 {
-  "schema": "schema/poc.schema.json",
-  "count": 22,
+  "count": 24,
   "pocs": [
     {
-      "id": "answerback-injection",
-      "title": "The ENQ control (0x05) makes a terminal transmit its answerback string",
-      "class": "answerback-injection",
+      "archive_url": "TODO",
+      "author": "(alt-screen stuck-full-screen; documented class)",
+      "class": "alt-screen-hijack",
       "cve": [],
-      "author": "(ENQ answerback abuse; documented class)",
-      "source_url": "https://hdm.io/writing/termulation.txt",
-      "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",
-      "date": "2003-02",
-      "severity": "injection",
-      "mechanism": "enq-answerback",
-      "modified": false
+      "date": "2024",
+      "id": "alt-screen-hijack",
+      "mechanism": "alt-screen-no-restore",
+      "modified": false,
+      "severity": "dos",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "An unrestored alternate-screen switch leaves a terminal stuck full-screen"
     },
     {
-      "id": "bracketed-paste-bypass-2021",
-      "title": "Pasted content that embeds the end-bracketed-paste sequence (CSI 201 ~",
+      "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",
+      "author": "(ENQ answerback abuse; documented class)",
+      "class": "answerback-injection",
+      "cve": [],
+      "date": "2003-02",
+      "id": "answerback-injection",
+      "mechanism": "enq-answerback",
+      "modified": false,
+      "severity": "injection",
+      "source_url": "https://hdm.io/writing/termulation.txt",
+      "title": "The ENQ control (0x05) makes a terminal transmit its answerback string"
+    },
+    {
+      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "author": "Eviatar Gerzi (CyberArk)",
       "class": "bracketed-paste-bypass",
       "cve": [
         "CVE-2021-31701",
         "CVE-2021-37326",
         "CVE-2021-40147"
       ],
-      "author": "Eviatar Gerzi (CyberArk)",
-      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
-      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
       "date": "2021-03",
-      "severity": "injection",
+      "id": "bracketed-paste-bypass-2021",
       "mechanism": "end-bracketed-paste-early",
-      "modified": true
+      "modified": true,
+      "severity": "injection",
+      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "title": "Pasted content that embeds the end-bracketed-paste sequence (CSI 201 ~"
     },
     {
-      "id": "charset-shift-deception",
-      "title": "A charset shift (ESC ( 0, DEC special graphics) makes plain ASCII rend",
+      "archive_url": "TODO",
+      "author": "(charset-shift deception; documented class)",
       "class": "charset-shift-deception",
       "cve": [],
-      "author": "(charset-shift deception; documented class)",
-      "source_url": "https://secure-terminal.github.io",
-      "archive_url": "TODO",
       "date": "2020",
-      "severity": "spoof",
+      "id": "charset-shift-deception",
       "mechanism": "dec-special-graphics-shift",
-      "modified": false
+      "modified": false,
+      "severity": "spoof",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "A charset shift (ESC ( 0, DEC special graphics) makes plain ASCII rend"
     },
     {
-      "id": "cursor-addressing-spoof",
-      "title": "Cursor addressing (cursor-up + erase-line + rewrite) overwrites earlie",
+      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "author": "Eviatar Gerzi (CyberArk)",
+      "class": "crafted-hostile-log",
+      "cve": [],
+      "date": "2021-03",
+      "id": "crafted-hostile-log",
+      "mechanism": "osc-title-plus-charset-shift",
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "title": "A crafted log hijacks the title, stuck colour, and charset in one stream"
+    },
+    {
+      "archive_url": "TODO",
+      "author": "(cursor-overwrite deception; documented class)",
       "class": "cursor-addressing-spoof",
       "cve": [],
-      "author": "(cursor-overwrite deception; documented class)",
-      "source_url": "https://secure-terminal.github.io",
-      "archive_url": "TODO",
       "date": "2020",
-      "severity": "spoof",
+      "id": "cursor-addressing-spoof",
       "mechanism": "cursor-up-erase-overwrite",
-      "modified": false
+      "modified": false,
+      "severity": "spoof",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "Cursor addressing (cursor-up + erase-line + rewrite) overwrites earlie"
     },
     {
-      "id": "decrqss-reflection-2023",
-      "title": "DECRQSS status-request reflection (near-arbitrary input injection)",
+      "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
+      "author": "David Leadbeater",
       "class": "decrqss-reflection",
       "cve": [
         "CVE-2022-45872",
         "CVE-2022-47583",
         "CVE-2022-23465"
       ],
-      "author": "David Leadbeater",
-      "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
-      "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
       "date": "2023-09",
-      "severity": "rce",
+      "id": "decrqss-reflection-2023",
       "mechanism": "decrqss-reflection",
-      "modified": true
+      "modified": true,
+      "severity": "rce",
+      "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
+      "title": "DECRQSS status-request reflection (near-arbitrary input injection)"
     },
     {
-      "id": "device-status-reflection-rxvt-2021",
-      "title": "A colour query (OSC 10 ; ?) makes the terminal write its reply back in",
+      "archive_url": "TODO",
+      "author": "(rxvt-unicode DSR/colour-query newline)",
       "class": "device-status-reflection",
       "cve": [
         "CVE-2021-33477"
       ],
-      "author": "(rxvt-unicode DSR/colour-query newline)",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-33477",
-      "archive_url": "TODO",
       "date": "2021-05",
-      "severity": "injection",
+      "id": "device-status-reflection-rxvt-2021",
       "mechanism": "colour-query-reflection",
-      "modified": false
+      "modified": false,
+      "severity": "injection",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-33477",
+      "title": "A colour query (OSC 10 ; ?) makes the terminal write its reply back in"
     },
     {
-      "id": "homoglyph-2021",
-      "title": "Homoglyph identifier deception",
-      "class": "homoglyph",
-      "cve": [
-        "CVE-2021-42694"
-      ],
+      "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
       "author": "Nicholas Boucher, Ross Anderson",
-      "source_url": "https://trojansource.codes/",
-      "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
-      "date": "2021-11",
-      "severity": "spoof",
-      "mechanism": "homoglyph-substitution",
-      "modified": false
-    },
-    {
-      "id": "homoglyph-domain-install-2021",
-      "title": "Homoglyph domain in a copy-paste install command",
       "class": "homoglyph",
       "cve": [
         "CVE-2021-42694"
       ],
-      "author": "IDN homograph attack (Gabrilovich, Gontmakher 2002); homoglyph CVE: Boucher, Anderson",
-      "source_url": "https://trojansource.codes/",
-      "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
       "date": "2021-11",
-      "severity": "spoof",
+      "id": "homoglyph-2021",
       "mechanism": "homoglyph-substitution",
-      "modified": false
+      "modified": false,
+      "severity": "spoof",
+      "source_url": "https://trojansource.codes/",
+      "title": "Homoglyph identifier deception"
     },
     {
-      "id": "iterm2-title-report-tmux-2024",
-      "title": "The 2003 title-report echoback resurfaced in iTerm2 < 3",
+      "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
+      "author": "IDN homograph attack (Gabrilovich, Gontmakher 2002); homoglyph CVE: Boucher, Anderson",
+      "class": "homoglyph",
+      "cve": [
+        "CVE-2021-42694"
+      ],
+      "date": "2021-11",
+      "id": "homoglyph-domain-install-2021",
+      "mechanism": "homoglyph-substitution",
+      "modified": false,
+      "severity": "spoof",
+      "source_url": "https://trojansource.codes/",
+      "title": "Homoglyph domain in a copy-paste install command"
+    },
+    {
+      "archive_url": "http://web.archive.org/web/20260716163917/https://vin01.github.io/piptagole/escape-sequences/iterm2/rce/2024/06/16/iterm2-rce-window-title-tmux-integration.html",
+      "author": "Vin01",
       "class": "title-report-echoback",
       "cve": [
         "CVE-2024-38395",
         "CVE-2024-38396"
       ],
-      "author": "Vin01",
-      "source_url": "https://vin01.github.io/piptagole/escape-sequences/iterm2/rce/2024/06/16/iterm2-rce-window-title-tmux-integration.html",
-      "archive_url": "http://web.archive.org/web/20260716163917/https://vin01.github.io/piptagole/escape-sequences/iterm2/rce/2024/06/16/iterm2-rce-window-title-tmux-integration.html",
       "date": "2024-06",
-      "severity": "rce",
+      "id": "iterm2-title-report-tmux-2024",
       "mechanism": "title-set-then-report",
-      "modified": true
+      "modified": true,
+      "severity": "rce",
+      "source_url": "https://vin01.github.io/piptagole/escape-sequences/iterm2/rce/2024/06/16/iterm2-rce-window-title-tmux-integration.html",
+      "title": "The 2003 title-report echoback resurfaced in iTerm2 < 3"
     },
     {
-      "id": "notification-spoof-kitty-2022",
-      "title": "A desktop-notification OSC (OSC 9 / 99) carries attacker-chosen text t",
+      "archive_url": "http://web.archive.org/web/20260314152006/https://nvd.nist.gov/vuln/detail/CVE-2022-41322",
+      "author": "(kitty desktop-notification OSC injection)",
       "class": "notification-spoof",
       "cve": [
         "CVE-2022-41322"
       ],
-      "author": "(kitty desktop-notification OSC injection)",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41322",
-      "archive_url": "http://web.archive.org/web/20260314152006/https://nvd.nist.gov/vuln/detail/CVE-2022-41322",
       "date": "2022-09",
-      "severity": "spoof",
+      "id": "notification-spoof-kitty-2022",
       "mechanism": "osc-notification-text",
-      "modified": true
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41322",
+      "title": "A desktop-notification OSC (OSC 9 / 99) carries attacker-chosen text t"
     },
     {
-      "id": "osc-code-injection-urxvt-2022",
-      "title": "rxvt-unicode < 9",
+      "archive_url": "http://web.archive.org/web/20260528140514/https://nvd.nist.gov/vuln/detail/CVE-2022-4170",
+      "author": "(rxvt-unicode OSC 705 background eval)",
       "class": "osc-code-injection",
       "cve": [
         "CVE-2022-4170"
       ],
-      "author": "(rxvt-unicode OSC 705 background eval)",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-4170",
-      "archive_url": "http://web.archive.org/web/20260528140514/https://nvd.nist.gov/vuln/detail/CVE-2022-4170",
       "date": "2022-11",
-      "severity": "rce",
+      "id": "osc-code-injection-urxvt-2022",
       "mechanism": "osc705-eval",
-      "modified": true
+      "modified": true,
+      "severity": "rce",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-4170",
+      "title": "rxvt-unicode < 9"
     },
     {
-      "id": "osc50-font-query-echoback-2022",
-      "title": "OSC 50 font set-then-query echoback (command injection)",
+      "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
+      "author": "David Leadbeater",
       "class": "osc50-font-query-echoback",
       "cve": [
         "CVE-2022-45063",
         "CVE-2023-39726"
       ],
-      "author": "David Leadbeater",
-      "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
-      "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
       "date": "2022-11",
-      "severity": "rce",
+      "id": "osc50-font-query-echoback-2022",
       "mechanism": "osc50-font-set-then-query",
-      "modified": true
+      "modified": true,
+      "severity": "rce",
+      "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
+      "title": "OSC 50 font set-then-query echoback (command injection)"
     },
     {
-      "id": "osc52-clipboard-write",
-      "title": "OSC 52 silent clipboard overwrite (paste hijack)",
+      "archive_url": "TODO",
+      "author": "(OSC 52 clipboard-write abuse; publicly documented class)",
       "class": "osc52-clipboard-write",
       "cve": [],
-      "author": "(OSC 52 clipboard-write abuse; publicly documented class)",
-      "source_url": "https://secure-terminal.github.io",
-      "archive_url": "TODO",
       "date": "2020",
-      "severity": "spoof",
+      "id": "osc52-clipboard-write",
       "mechanism": "osc52-clipboard-set",
-      "modified": true
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "OSC 52 silent clipboard overwrite (paste hijack)"
     },
     {
-      "id": "osc8-hyperlink-phishing",
-      "title": "OSC 8 hyperlink text/target mismatch (phishing)",
+      "archive_url": "http://web.archive.org/web/20260709012023/https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda",
+      "author": "(OSC 8 hyperlink spec abuse; publicly documented class)",
       "class": "osc8-hyperlink-phishing",
       "cve": [
         "CVE-2022-46663"
       ],
-      "author": "(OSC 8 hyperlink spec abuse; publicly documented class)",
-      "source_url": "https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda",
-      "archive_url": "http://web.archive.org/web/20260709012023/https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda",
       "date": "2017",
-      "severity": "spoof",
+      "id": "osc8-hyperlink-phishing",
       "mechanism": "osc8-visible-vs-target",
-      "modified": false
+      "modified": false,
+      "severity": "spoof",
+      "source_url": "https://gist.github.com/egmontkob/eb114294efbcd5adb1944c9f3cb5feda",
+      "title": "OSC 8 hyperlink text/target mismatch (phishing)"
     },
     {
-      "id": "osc8-url-scheme-injection-2023",
-      "title": "An OSC 8 hyperlink whose target uses a dangerous URL scheme (e",
+      "archive_url": "http://web.archive.org/web/20260716163924/https://vin01.github.io/piptagole/escape-sequences/iterm2/hyper/url-handlers/code-execution/2024/05/21/arbitrary-url-schemes-terminal-emulators.html",
+      "author": "Vin01",
       "class": "osc8-url-scheme-arg-injection",
       "cve": [
         "CVE-2023-46321",
         "CVE-2023-46322"
       ],
-      "author": "Vin01",
-      "source_url": "https://vin01.github.io/piptagole/escape-sequences/iterm2/hyper/url-handlers/code-execution/2024/05/21/arbitrary-url-schemes-terminal-emulators.html",
-      "archive_url": "http://web.archive.org/web/20260716163924/https://vin01.github.io/piptagole/escape-sequences/iterm2/hyper/url-handlers/code-execution/2024/05/21/arbitrary-url-schemes-terminal-emulators.html",
       "date": "2024-05",
-      "severity": "rce",
+      "id": "osc8-url-scheme-injection-2023",
       "mechanism": "osc8-url-scheme-arg-injection",
-      "modified": false
+      "modified": false,
+      "severity": "rce",
+      "source_url": "https://vin01.github.io/piptagole/escape-sequences/iterm2/hyper/url-handlers/code-execution/2024/05/21/arbitrary-url-schemes-terminal-emulators.html",
+      "title": "An OSC 8 hyperlink whose target uses a dangerous URL scheme (e"
     },
     {
-      "id": "parser-dos-insert-blank",
-      "title": "A control sequence with an enormous repeat/count parameter (here inser",
+      "archive_url": "http://web.archive.org/web/20260316130149/https://nvd.nist.gov/vuln/detail/CVE-2012-2738",
+      "author": "(VTE / xterm parser DoS lineage)",
       "class": "parser-dos",
       "cve": [
         "CVE-2012-2738",
@@ -237,47 +262,47 @@
         "CVE-2023-40216",
         "CVE-2022-46285"
       ],
-      "author": "(VTE / xterm parser DoS lineage)",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2012-2738",
-      "archive_url": "http://web.archive.org/web/20260316130149/https://nvd.nist.gov/vuln/detail/CVE-2012-2738",
       "date": "2012-06",
-      "severity": "dos",
+      "id": "parser-dos-insert-blank",
       "mechanism": "huge-repeat-count",
-      "modified": false
+      "modified": false,
+      "severity": "dos",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2012-2738",
+      "title": "A control sequence with an enormous repeat/count parameter (here inser"
     },
     {
-      "id": "regis-decoder-overflow-2023",
-      "title": "A ReGIS char-set-name reporting sequence overruns a buffer in xterm (t",
+      "archive_url": "http://web.archive.org/web/20260417114936/https://nvd.nist.gov/vuln/detail/CVE-2023-40359",
+      "author": "(xterm ReGIS reporting overflow)",
       "class": "regis-decoder",
       "cve": [
         "CVE-2023-40359"
       ],
-      "author": "(xterm ReGIS reporting overflow)",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-40359",
-      "archive_url": "http://web.archive.org/web/20260417114936/https://nvd.nist.gov/vuln/detail/CVE-2023-40359",
       "date": "2023-08",
-      "severity": "dos",
+      "id": "regis-decoder-overflow-2023",
       "mechanism": "regis-charset-name-overflow",
-      "modified": false
+      "modified": false,
+      "severity": "dos",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-40359",
+      "title": "A ReGIS char-set-name reporting sequence overruns a buffer in xterm (t"
     },
     {
-      "id": "sixel-decoder-overflow-2022",
-      "title": "A Sixel image with a repeat operator that overruns a bounds check in x",
+      "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
+      "author": "David Leadbeater",
       "class": "sixel-decoder",
       "cve": [
         "CVE-2022-24130"
       ],
-      "author": "David Leadbeater",
-      "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
-      "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
       "date": "2022-01",
-      "severity": "dos",
+      "id": "sixel-decoder-overflow-2022",
       "mechanism": "sixel-repeat-overflow",
-      "modified": false
+      "modified": false,
+      "severity": "dos",
+      "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
+      "title": "A Sixel image with a repeat operator that overruns a bounds check in x"
     },
     {
-      "id": "title-change-dos-2021",
-      "title": "A flood of rapid window-title changes (OSC 0) exhausts CPU/memory and ",
+      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "author": "Eviatar Gerzi (CyberArk)",
       "class": "title-change-dos",
       "cve": [
         "CVE-2021-28847",
@@ -286,17 +311,17 @@
         "CVE-2021-33500",
         "CVE-2021-42095"
       ],
-      "author": "Eviatar Gerzi (CyberArk)",
-      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
-      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
       "date": "2021-03",
-      "severity": "dos",
+      "id": "title-change-dos-2021",
       "mechanism": "title-change-flood",
-      "modified": false
+      "modified": false,
+      "severity": "dos",
+      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "title": "A flood of rapid window-title changes (OSC 0) exhausts CPU/memory and "
     },
     {
-      "id": "title-report-echoback-2003",
-      "title": "Window title set-then-report echoback (command injection)",
+      "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",
+      "author": "HD Moore (Digital Defense)",
       "class": "title-report-echoback",
       "cve": [
         "CVE-2003-0063",
@@ -308,45 +333,46 @@
         "CVE-2023-39150",
         "CVE-2015-8971"
       ],
-      "author": "HD Moore (Digital Defense)",
-      "source_url": "https://hdm.io/writing/termulation.txt",
-      "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",
       "date": "2003-02",
-      "severity": "rce",
+      "id": "title-report-echoback-2003",
       "mechanism": "title-set-then-report",
-      "modified": true
+      "modified": true,
+      "severity": "rce",
+      "source_url": "https://hdm.io/writing/termulation.txt",
+      "title": "Window title set-then-report echoback (command injection)"
     },
     {
-      "id": "trojan-source-bidi-2021",
-      "title": "Trojan-Source bidirectional-override deception",
+      "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
+      "author": "Nicholas Boucher, Ross Anderson",
       "class": "trojan-source-bidi",
       "cve": [
         "CVE-2021-42574"
       ],
-      "author": "Nicholas Boucher, Ross Anderson",
-      "source_url": "https://trojansource.codes/",
-      "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
       "date": "2021-11",
-      "severity": "spoof",
+      "id": "trojan-source-bidi-2021",
       "mechanism": "bidi-override-reorder",
-      "modified": false
+      "modified": false,
+      "severity": "spoof",
+      "source_url": "https://trojansource.codes/",
+      "title": "Trojan-Source bidirectional-override deception"
     },
     {
-      "id": "window-ops-iconlabel-report-2003",
-      "title": "A window-operation variant of the echoback class: set the icon label v",
+      "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",
+      "author": "HD Moore",
       "class": "window-ops",
       "cve": [
         "CVE-2003-0065",
         "CVE-2003-0070",
         "CVE-2022-44702"
       ],
-      "author": "HD Moore",
-      "source_url": "https://hdm.io/writing/termulation.txt",
-      "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",
       "date": "2003-02",
-      "severity": "rce",
+      "id": "window-ops-iconlabel-report-2003",
       "mechanism": "iconlabel-set-then-report",
-      "modified": true
+      "modified": true,
+      "severity": "rce",
+      "source_url": "https://hdm.io/writing/termulation.txt",
+      "title": "A window-operation variant of the echoback class: set the icon label v"
     }
-  ]
+  ],
+  "schema": "schema/poc.schema.json"
 }

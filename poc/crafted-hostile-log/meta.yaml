@@ -1,0 +1,30 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: crafted-hostile-log
+title: "A crafted log hijacks the title, stuck colour, and charset in one stream"
+class: crafted-hostile-log
+cve: []
+affected:
+  - product: "terminals honouring OSC 0 title-set + DEC special-graphics charset"
+    tested: false
+author: "Eviatar Gerzi (CyberArk)"
+source_url: "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters"
+archive_url: "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters"
+date: "2021-03"
+severity: spoof
+mechanism: osc-title-plus-charset-shift
+payload_encoding: hex
+verification: crafted-composite
+expected_effect: >-
+  An ordinary-looking log that carries, mid-stream, an OSC 0 window/tab-title set, a
+  stuck SGR colour, and a DEC line-drawing charset shift -- none reset. A traditional
+  terminal is left with a hijacked title and corrupted charset after merely displaying
+  the stream (CyberArk 2021). secure-terminal strips the OSC title-set and the charset
+  shift, so neither escape survives (title unchanged, line-drawing shown as literal
+  ASCII); separately, its safe-colour handling keeps the SGR colour readable rather than
+  leaving it stuck. Verification asserts the two escapes are stripped.
+canary: "example.com -- safe demonstration"
+modified: true
+original_ref: >-
+  CyberArk's crafted log sets a deceptive prod-style title; here the title and body use
+  explicit safe-demonstration wording, combined into one reproducible log for the
+  secure-terminal comparison.
