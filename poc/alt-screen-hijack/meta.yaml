@@ -1,0 +1,23 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: alt-screen-hijack
+title: "An unrestored alternate-screen switch leaves a terminal stuck full-screen"
+class: alt-screen-hijack
+cve: []
+affected:
+  - product: "terminals honouring the alternate-screen private modes (?1049/?1047/?47)"
+    tested: false
+author: "(alt-screen stuck-full-screen; documented class)"
+source_url: "https://secure-terminal.github.io"
+archive_url: "TODO"
+date: "2024"
+severity: dos
+mechanism: alt-screen-no-restore
+payload_encoding: hex
+verification: screen-hijack
+expected_effect: >-
+  A switch to the alternate screen buffer (ESC [ ?1049h) with no matching restore leaves a
+  traditional terminal stuck in a blank full-screen: the prompt is gone and the cursor is
+  hidden until `reset`. The canary token is written inside the alternate buffer, so on a
+  vulnerable terminal it only shows in the hijacked screen.
+canary: "POC-CORPUS-CANARY-FIRED"
+modified: false

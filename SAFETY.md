@@ -20,21 +20,29 @@ the sandbox harness, at run time, inside a disposable VM.
 **Never** decode a payload and pipe it to a real terminal. Never `printf` or `echo`
 the decoded bytes outside the harness.
 
-## 2. Payloads are CANARY-FORKED (payload-safe)
+## 2. Injection payloads are CANARY-FORKED (payload-safe)
 
-A raw proof-of-concept often does something destructive to prove code execution
-(`rm`, open a calculator, exfiltrate a file). We do not keep those actions. Every
-runnable payload is rewritten so that **if the terminal executes the injected
-content, it performs one safe, unique, detectable action** -- it writes a marker
-token to a file the harness named -- instead of anything harmful.
+A raw proof-of-concept that reaches code execution often does something destructive
+to prove it (`rm`, open a calculator, exfiltrate a file). For every payload whose
+class INJECTS content the terminal could run (the reflection / answerback /
+title-report / OSC-command classes), we do not keep that action: the injected
+content is rewritten so that **if the terminal executes it, it performs one safe,
+unique, detectable action** -- it writes a marker token to a file the harness named
+-- instead of anything harmful. A payload adapted this way is marked
+`modified: true` in its `meta.yaml`, with `original_ref` pointing at the unmodified
+upstream description (provenance only, never executed).
 
-That is what makes this a *test suite* and not a *weapon*: an entry proves a
-vulnerability without being able to cause harm. A payload adapted this way is
-marked `modified: true` in its `meta.yaml`, with `original_ref` pointing at the
-unmodified upstream description (kept for provenance, never executed).
+Not every class injects a command. The **denial-of-service** and **decoder-crash**
+classes are resource/parser triggers, not command injections -- there is no attacker
+command to fork, so they are kept as the real (`modified: false`) trigger. They
+execute no code, but they CAN crash, corrupt, or freeze a *vulnerable* terminal, and
+`reset` may not recover it -- that outcome is exactly what the test measures. So for
+these classes section 3 is not optional: run them in the disposable sandbox only,
+never against a terminal you care about. `tools/reproduce.py` labels each payload's
+risk tier (SAFE / reset-recoverable vs CAUTION / may crash) from its verification
+mode, and its `--self-test` asserts a crash/DoS payload is never mislabelled SAFE.
 
-Each forked payload is reviewed (see the project's `ai-review` gate) to confirm it
-**cannot harm a tester** before it is added.
+Each entry is reviewed (see the project's `ai-review` gate) before it is added.
 
 ## 3. Payloads run in a SANDBOX VM ONLY (run-safe)
 
@@ -60,4 +68,5 @@ a source link, a web-archive link, and author attribution. No 0-days.
 
 ## In one line
 
-Encoded at rest, canary-forked, sandbox-only, self-checking, public-only.
+Encoded at rest, injections canary-forked, crash/DoS sandbox-contained,
+self-checking, public-only.
