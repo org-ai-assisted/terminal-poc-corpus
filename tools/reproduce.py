@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Reproduce ONE PoC as a plain file you can render in a THROWAWAY sandbox terminal,
-to see the effect on a traditional terminal and compare with secure-terminal. This is
-the easy, user-facing path -- the harness (adversarial.py / run.py) proves
-neutralization automatically; this just hands you a file plus the right way to feed it.
+"""Reproduce ONE PoC as a plain file you can render in a THROWAWAY sandbox terminal, to
+SEE the effect on a traditional terminal and compare it side by side with
+secure-terminal. This is the easy, visual, user-facing path. Firing and DETECTING a
+canary automatically is the harness's job (harness/run.py, harness/adversarial.py) --
+this helper hands you the file, the right way to feed it, and its risk tier.
 
-The safety banner AND the how-to are tailored to the PoC's verification mode -- one
-size does not fit all:
+The banner and how-to are tailored to the PoC's verification mode -- one size does not
+fit all:
   - decoder-crash / denial-of-service are REAL, unmodified payloads that can crash or
     freeze a vulnerable terminal, so they carry a CAUTION, never the SAFE wording;
-  - paste-bypass fires only through the PASTE path, not `cat`;
-  - canary-command records its safe marker only when the harness canary env is set.
+  - paste-bypass fires only through the PASTE path, not `cat`.
 It writes LIVE terminal-attack bytes, so it refuses to run outside a sandbox unless
 overridden. See ../SAFETY.md.
 
@@ -24,6 +24,12 @@ import os
 import re
 import shlex
 import sys
+
+try:
+    import yaml
+except ImportError as exc:                                       # pragma: no cover
+    sys.stderr.write('poc-corpus: need python3-yaml: %s\n' % exc)
+    raise SystemExit(2)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -52,14 +58,19 @@ def _decode(payload_hex):
     return binascii.unhexlify(''.join(body))
 
 
-def _field(meta_path, key):
+def _meta(poc_id):
+    # real YAML, so a quoted or inline-commented `verification:` is parsed correctly --
+    # a line-split parser would fold the quotes/comment into the mode and mis-tier it.
     try:
-        for line in open(meta_path, encoding='utf-8'):
-            if line.startswith(key + ':'):
-                return line.split(':', 1)[1].strip().strip('"')
+        with open(os.path.join(ROOT, 'poc', poc_id, 'meta.yaml'), encoding='utf-8') as fh:
+            return yaml.safe_load(fh) or {}
     except OSError:
-        pass
-    return ''
+        return {}
+
+
+def _mode(meta):
+    # default matches the harness: an absent verification field is 'canary-command'.
+    return meta.get('verification') or 'canary-command'
 
 
 def _ids():
@@ -69,10 +80,10 @@ def _ids():
     return sorted(os.path.basename(os.path.dirname(p)) for p in glob.glob(pattern))
 
 
-def _safety_note(mode, out):
+def _safety_note(mode, out, poc_id):
     """Per-verification-mode banner + how-to. Destructive classes get a CAUTION;
-    paste-bypass is fed via the paste path; canary-command needs the marker env; all
-    others are cat-and-reset SAFE. The command path is shell-quoted."""
+    paste-bypass is fed via the paste path; all others are cat-and-compare SAFE with the
+    harness as the reliable fire/detect path. Command paths are shell-quoted."""
     q = shlex.quote(out)
     if mode in _DESTRUCTIVE_MODES:
         kind = 'a crash/decoder-overflow' if mode == 'decoder-crash' else 'a denial-of-service'
@@ -87,36 +98,25 @@ def _safety_note(mode, out):
             'inert, in bounded time, and never runs the decoder.\n' % (kind, q))
     if mode == 'paste-bypass':
         return (
-            'SAFE: the injected content is the inert corpus canary. But this class fires\n'
-            'only through the PASTE path -- `cat` sends the bytes as program output, which\n'
-            'never enters bracketed-paste mode, so the bypass will NOT trigger from cat.\n'
-            'To exercise it, put the bytes on the clipboard and PASTE them into a\n'
-            'THROWAWAY terminal:\n'
+            'SAFE: no destructive action. But this class fires only through the PASTE\n'
+            'path -- `cat` sends the bytes as program output, which never enters\n'
+            'bracketed-paste mode, so the bypass will NOT trigger from cat. To exercise\n'
+            'it, put the bytes on the clipboard and PASTE them into a THROWAWAY terminal:\n'
             '  xclip -selection clipboard < %s    # then Ctrl-Shift-V to paste\n'
             '  reset\n'
             'Then paste the same into secure-terminal -- its paste sanitizer strips the\n'
             'escape, so the guard cannot be broken.\n' % q)
-    if mode == 'canary-command':
-        return (
-            'SAFE: the injected command is the corpus canary -- it writes only the marker\n'
-            'POC-CORPUS-CANARY-FIRED, never anything harmful.\n\n'
-            'A plain `cat` shows the injection, but the marker is recorded only if the\n'
-            'shell has the canary env the harness sets. In a THROWAWAY terminal:\n'
-            '  export POC_CANARY_TOKEN=POC-CORPUS-CANARY-FIRED POC_CANARY="$PWD/canary.out"\n'
-            '  cat %s          # a vulnerable terminal injects + runs the canary\n'
-            '  cat canary.out     # the marker text means the attack fired\n'
-            '  reset\n'
-            'Then feed the file to secure-terminal in CLI mode -- it renders it inert (no\n'
-            'injection). Or use harness/run.py for an automated fire-and-detect.\n' % q)
     return (
-        'SAFE: display / input / clipboard / notification state only, recoverable with\n'
-        '`reset`. The payload carries the inert marker POC-CORPUS-CANARY-FIRED, not a\n'
-        'real exploit.\n\n'
-        'In a THROWAWAY terminal:\n'
-        '  cat %s          # a traditional terminal: the attack fires\n'
-        '  reset            # recover\n'
-        'Then feed the same file to secure-terminal in CLI mode -- it renders it inert.\n'
-        % q)
+        'SAFE: this class touches display / input / clipboard / notification state only\n'
+        'and carries no destructive action; recover a traditional terminal with `reset`.\n\n'
+        'SEE the difference (in a THROWAWAY terminal):\n'
+        '  cat %s          # a traditional terminal renders the attack\n'
+        '  reset\n'
+        'Then feed the same file to secure-terminal in CLI mode -- it renders it inert.\n\n'
+        'To FIRE and DETECT a canary automatically (injection classes) rather than by\n'
+        'hand, use the sandbox harness -- it sets the marker env, submits the injected\n'
+        'command, and checks the result:\n'
+        '  POC_CORPUS_IN_SANDBOX=1 harness/run.py poc/%s\n' % (q, poc_id))
 
 
 def _self_test():
@@ -127,9 +127,8 @@ def _self_test():
     failures = 0
     ids = _ids()
     for poc_id in ids:
-        mode = _field(os.path.join(ROOT, 'poc', poc_id, 'meta.yaml'), 'verification') \
-            or 'canary-command'
-        note = _safety_note(mode, poc_id + '.payload')
+        mode = _mode(_meta(poc_id))
+        note = _safety_note(mode, poc_id + '.payload', poc_id)
         destructive = mode in _DESTRUCTIVE_MODES
         bad = []
         if destructive and ('CAUTION' not in note or 'SAFE:' in note):
@@ -168,8 +167,7 @@ def main():
                          'Run --list for the ids.\n' % args.poc_id)
         return 2
 
-    poc_dir = os.path.join(ROOT, 'poc', args.poc_id)
-    hex_path = os.path.join(poc_dir, 'payload.hex')
+    hex_path = os.path.join(ROOT, 'poc', args.poc_id, 'payload.hex')
     if not os.path.isfile(hex_path):
         sys.stderr.write('unknown PoC %r. Run --list for the ids.\n' % args.poc_id)
         return 2
@@ -186,16 +184,13 @@ def main():
     with open(out, 'wb') as handle:
         handle.write(payload)
 
-    meta_path = os.path.join(poc_dir, 'meta.yaml')
-    # default matches the harness: an absent verification field is 'canary-command'.
-    mode = _field(meta_path, 'verification') or 'canary-command'
+    meta = _meta(args.poc_id)
     sys.stderr.write(
         'wrote %s (%d bytes) -- PoC %r [%s]\n'
         '  %s\n\n'
         '%s'
-        % (out, len(payload), args.poc_id,
-           _field(meta_path, 'class'), _field(meta_path, 'title'),
-           _safety_note(mode, out)))
+        % (out, len(payload), args.poc_id, meta.get('class', ''),
+           meta.get('title', ''), _safety_note(_mode(meta), out, args.poc_id)))
     return 0
 
 
