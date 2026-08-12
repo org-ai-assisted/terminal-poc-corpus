@@ -16,8 +16,8 @@ payload_encoding: hex
 expected_effect: >-
   A desktop-notification OSC (OSC 9 / OSC 99) carries attacker-chosen text that pops up as a trusted-looking system notification. This is kitty's documented default behaviour, not a bug: any program's output can raise a real desktop notification, so the text can be attacker-chosen. Here the notification text is the benign canary token.
 canary: "POC-CORPUS-CANARY-FIRED"
-modified: true
+# Representative demo of kitty's DEFAULT OSC 9/99 notification behaviour, not an
+# adaptation of a specific upstream payload -- so modified:false, no original_ref.
+modified: false
 notes: >-
-  Demonstrates kitty's DEFAULT notification behaviour (see source_url): OSC 9 / OSC 99 in the byte stream raises a desktop notification with program-supplied text. This is distinct from CVE-2022-41322, a separate escaping/validation bug in kitty's notification handling (fixed in kitty 0.26.2) that allowed code execution only when the user CLICKED a crafted notification. This PoC does not reproduce that RCE -- only the default text spoof.
-original_ref: >-
-  Upstream shows an arbitrary (phishing) notification; here the text is the benign canary token.
+  Demonstrates kitty's DEFAULT notification behaviour (see source_url): OSC 9 / OSC 99 in the byte stream raises a desktop notification with program-supplied text. The text here is the benign canary token. This is distinct from CVE-2022-41322, a separate escaping/validation bug in kitty's notification handling (fixed in kitty 0.26.2) that allowed code execution only when the user CLICKED a crafted notification. This PoC does not reproduce that RCE -- only the default text spoof.

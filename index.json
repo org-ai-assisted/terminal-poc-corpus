@@ -168,7 +168,7 @@
       "date": "2022-09",
       "id": "notification-spoof-kitty-2022",
       "mechanism": "osc-notification-text",
-      "modified": true,
+      "modified": false,
       "severity": "spoof",
       "source_url": "https://sw.kovidgoyal.net/kitty/desktop-notifications/",
       "title": "A desktop-notification escape (OSC 9 / OSC 99) carries attacker-chosen text that pops up as a trusted-looking system notification"
