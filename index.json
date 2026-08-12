@@ -162,16 +162,19 @@
       "title": "The 2003 title-report echoback resurfaced in iTerm2 < 3"
     },
     {
-      "archive_url": "http://web.archive.org/web/20260809144719/https://sw.kovidgoyal.net/kitty/desktop-notifications/",
+      "archive_url": "http://web.archive.org/web/20260314152006/https://nvd.nist.gov/vuln/detail/CVE-2022-41322",
       "author": "(kitty desktop-notification OSC injection)",
       "class": "notification-spoof",
+      "cve": [
+        "CVE-2022-41322"
+      ],
       "date": "2022-09",
       "id": "notification-spoof-kitty-2022",
       "mechanism": "osc-notification-text",
       "modified": true,
       "severity": "spoof",
-      "source_url": "https://sw.kovidgoyal.net/kitty/desktop-notifications/",
-      "title": "A desktop-notification escape (OSC 9 / OSC 99) carries attacker-chosen text that pops up as a trusted-looking system notification"
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41322",
+      "title": "A desktop-notification OSC (OSC 9 / 99) carries attacker-chosen text t"
     },
     {
       "archive_url": "http://web.archive.org/web/20260528140514/https://nvd.nist.gov/vuln/detail/CVE-2022-4170",
