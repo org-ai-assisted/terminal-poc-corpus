@@ -360,11 +360,11 @@
       "cve": [],
       "date": "2026-08",
       "id": "tui-showcase",
-      "mechanism": "composite-honest-board-osc0-charset-altscreen-osc8-osc9-bidi-homoglyph-zerowidth-combining-fullwidth",
+      "mechanism": "composite-display-only-board-osc0-charset-altscreen-osc8-bidi-homoglyph-zerowidth-combining-fullwidth-plus-inert-osc9-osc52-dsr",
       "modified": true,
       "severity": "spoof",
       "source_url": "https://secure-terminal.github.io/comparison/",
-      "title": "One safe file: a self-labeling board that shows every terminal text-attack class at once"
+      "title": "One safe display-only file: a self-labeling board showing every terminal text-attack class"
     },
     {
       "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",

@@ -27,22 +27,20 @@ names a class and shows a live example of it:
 - Notification (OSC 9)  -- a desktop notification with safe wording;
 - Title hijack (OSC 0)  -- sets the window title (labeled; effect is the title bar);
 - Alt-screen (?1049h)   -- switches to the alternate screen (labeled; effect is the screen);
-- Clipboard write (OSC 52) -- sets the clipboard to a labeled `SAFE-DEMO` note (harmless,
-  recoverable -- it overwrites whatever was on the clipboard);
-- Output->input (DSR)   -- a cursor-position query the terminal answers by typing its own
-  coordinates onto the shell input (coords only, no newline -- "output became input",
-  harmlessly);
 - Honest foreign (Greek)-- real Greek text -- the NON-attack contrast case.
 
-The board is honest about what it fires and what it does not. It DOES fire OSC 52 (with a
-harmless labeled note) and the DSR cursor-report reflection (coords only, no newline), and
-says so. It deliberately does NOT fire the RCE reflection variant (an attacker-controlled
-reflected COMMAND) -- that is shown by a separate, throwaway-terminal-only repro: cat it,
-then `ls /tmp/test-demo-file`, which the reflected `touch` created -- nor the crash/decoder
-classes (out of scope). The title, alt-screen, clipboard and notification are changed on
-purpose; a plaintext warning is the file's FIRST bytes, the board runs on the alternate
-screen, and the footer tells the reader to run `reset` + Ctrl-C and re-copy the clipboard.
-There is no destructive content and nothing auto-executes.
+Three classes reach OUTSIDE the display -- a desktop notification (OSC 9), the clipboard
+(OSC 52) and the shell input (DSR reflection). This file is DISPLAY-ONLY, so those three
+rows SHOW the escape as inert readable text (`\e]9;..`, `\e]52;c;..`, `\e[6n`) and are
+NEVER fired. Each is fired and conformance-tested live in the SANDBOX by its own PoC
+(`notification-spoof`, `osc52-clipboard-write`, `device-status-reflection`), and the RCE
+reflection variant (an attacker-controlled reflected COMMAND) is described only and
+sandbox-tested -- never shipped as a live file.
+
+So the only state this file changes is the DISPLAY: the window title (OSC 0) and the
+alternate screen (?1049h), both undone by `reset`. A plaintext warning is the file's FIRST
+bytes, the board runs on the alternate screen (real scrollback preserved), and the footer
+says to run `reset`. Nothing is copied, typed, executed or destroyed.
 
 ## Verification (composite-multiclass)
 
@@ -50,19 +48,21 @@ secure-terminal in CLI mode strips every escape and boxes every non-ASCII byte. 
 detector runs secure-terminal's `render_output(payload, 'box')` and reports a HIT if ANY
 embedded class survived, i.e. if the rendered text still contains:
 
-- any ESC (`0x1b`) -- one check that covers EVERY escape class, since each carries an ESC:
-  the OSC-0 title-set, the DEC charset-shift (`ESC ( 0`), the alt-screen enable
-  (`ESC [ ? 1049 h`), and the OSC 8 / OSC 9 / OSC 52 and DSR (`ESC [ 6 n`) escapes; OR
+- any ESC (`0x1b`) -- one check that covers EVERY live escape class, since each carries an
+  ESC: the OSC-0 title-set, the DEC charset-shift (`ESC ( 0`), the alt-screen enable
+  (`ESC [ ? 1049 h`), and the OSC 8 hyperlink; OR
 - a NUL (`0x00`, a truncation byte); OR
 - any non-ASCII code point (a surviving homoglyph, bidi control, zero-width, combining,
   fullwidth, or foreign character).
 
 A neutralized render is pure ASCII with no ESC and no NUL: the title is untouched, the
-terminal never leaves the primary screen, the hyperlink/notification/clipboard/reflection
-escapes are gone, the line-drawing shows as literal text, and every hidden/reordered/
-look-alike byte is an inert boxed placeholder. Because a regression in ANY single class
-re-introduces an ESC, a NUL, or a non-ASCII byte, this one assertion covers all of them:
-it fails if even one class is silently passed through.
+terminal never leaves the primary screen, the hyperlink escape is gone, the line-drawing
+shows as literal text, and every hidden/reordered/look-alike byte is an inert boxed
+placeholder. Because a regression in ANY single live class re-introduces an ESC, a NUL, or
+a non-ASCII byte, this one assertion covers all of them: it fails if even one is silently
+passed through. (The OSC 9 / OSC 52 / DSR rows carry no real escape -- they are inert
+readable text here -- so their live neutralization is asserted by their own sandbox PoCs,
+not this one.)
 
 Three rows are present for education but are NOT caught by this detector, and the board is
 honest about why:
