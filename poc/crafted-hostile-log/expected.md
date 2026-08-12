@@ -16,11 +16,14 @@ demonstrates the mechanism, not a threat.
 
 ## Verification (crafted-composite)
 
-secure-terminal in CLI mode strips the OSC title-set and the charset shift and
-contrast-guards the colour, so render_output contains neither the OSC escape
-(`ESC ] 0 ;`) nor the charset-shift escape (`ESC ( 0`): the title is untouched, the
-line-drawing shows as literal ASCII, and colour stays readable. The harness detects a
-hit if either escape survives.
+secure-terminal in CLI mode strips the OSC title-set and the charset shift, so
+render_output contains neither the OSC escape (`ESC ] 0 ;`) nor the charset-shift escape
+(`ESC ( 0`): the title is untouched and the line-drawing shows as literal ASCII. The
+harness detects a hit if EITHER escape survives.
+
+The stuck SGR colour is handled separately by secure-terminal's normal safe-colour
+(contrast-guarding) behaviour, which keeps it readable rather than stripping it; that is
+a rendering property, not part of this escape-survival check.
 
 ## Reference
 

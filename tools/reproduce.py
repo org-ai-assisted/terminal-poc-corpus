@@ -80,7 +80,7 @@ def _ids():
     return sorted(os.path.basename(os.path.dirname(p)) for p in glob.glob(pattern))
 
 
-def _safety_note(mode, out, poc_id):
+def _safety_note(mode, out):
     """Per-verification-mode banner + how-to. Destructive classes get a CAUTION;
     paste-bypass is fed via the paste path; all others are cat-and-compare SAFE with the
     harness as the reliable fire/detect path. Command paths are shell-quoted."""
@@ -113,10 +113,9 @@ def _safety_note(mode, out, poc_id):
         '  cat %s          # a traditional terminal renders the attack\n'
         '  reset\n'
         'Then feed the same file to secure-terminal in CLI mode -- it renders it inert.\n\n'
-        'To FIRE and DETECT a canary automatically (injection classes) rather than by\n'
-        'hand, use the sandbox harness -- it sets the marker env, submits the injected\n'
-        'command, and checks the result:\n'
-        '  POC_CORPUS_IN_SANDBOX=1 harness/run.py poc/%s\n' % (q, poc_id))
+        'To verify neutralization automatically -- for THIS mode and every other -- run\n'
+        'the sandbox harness against secure-terminal (no terminal-under-test needed):\n'
+        '  POC_CORPUS_IN_SANDBOX=1 harness/adversarial.py\n' % q)
 
 
 def _self_test():
@@ -128,7 +127,7 @@ def _self_test():
     ids = _ids()
     for poc_id in ids:
         mode = _mode(_meta(poc_id))
-        note = _safety_note(mode, poc_id + '.payload', poc_id)
+        note = _safety_note(mode, poc_id + '.payload')
         destructive = mode in _DESTRUCTIVE_MODES
         bad = []
         if destructive and ('CAUTION' not in note or 'SAFE:' in note):
@@ -190,7 +189,7 @@ def main():
         '  %s\n\n'
         '%s'
         % (out, len(payload), args.poc_id, meta.get('class', ''),
-           meta.get('title', ''), _safety_note(_mode(meta), out, args.poc_id)))
+           meta.get('title', ''), _safety_note(_mode(meta), out)))
     return 0
 
 
