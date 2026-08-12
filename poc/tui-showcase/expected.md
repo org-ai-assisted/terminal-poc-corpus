@@ -29,13 +29,13 @@ names a class and shows a live example of it:
 - Alt-screen (?1049h)   -- switches to the alternate screen (labeled; effect is the screen);
 - Honest foreign (Greek)-- real Greek text -- the NON-attack contrast case.
 
-Three classes reach OUTSIDE the display -- a desktop notification (OSC 9), the clipboard
-(OSC 52) and the shell input (DSR reflection). This file is DISPLAY-ONLY, so those three
-rows SHOW the escape as inert readable text (`\e]9;..`, `\e]52;c;..`, `\e[6n`) and are
-NEVER fired. Each is fired and conformance-tested live in the SANDBOX by its own PoC
-(`notification-spoof`, `osc52-clipboard-write`, `device-status-reflection`), and the RCE
-reflection variant (an attacker-controlled reflected COMMAND) is described only and
-sandbox-tested -- never shipped as a live file.
+The board is DISPLAY-ONLY: every row is a class it can safely FIRE and show. Classes that
+reach OUTSIDE the display are deliberately NOT in the board -- a desktop notification
+(OSC 9), the clipboard (OSC 52), the shell input (DSR reflection / answerback) and the
+reflected-command RCE. Each of those is fired and conformance-tested live in the SANDBOX
+by its own PoC (`notification-spoof`, `osc52-clipboard-write`, `device-status-reflection`,
+`title-report-echoback`), and all are compared -- with the crash/decoder classes -- on
+secure-terminal.github.io. They are not shipped as a live cat-able file.
 
 So the only state this file changes is the DISPLAY: the window title (OSC 0) and the
 alternate screen (?1049h), both undone by `reset`. A plaintext warning is the file's FIRST
@@ -60,9 +60,9 @@ terminal never leaves the primary screen, the hyperlink escape is gone, the line
 shows as literal text, and every hidden/reordered/look-alike byte is an inert boxed
 placeholder. Because a regression in ANY single live class re-introduces an ESC, a NUL, or
 a non-ASCII byte, this one assertion covers all of them: it fails if even one is silently
-passed through. (The OSC 9 / OSC 52 / DSR rows carry no real escape -- they are inert
-readable text here -- so their live neutralization is asserted by their own sandbox PoCs,
-not this one.)
+passed through. (The reach-outside classes -- OSC 9 / OSC 52 / DSR -- are not in this
+board at all; their live neutralization is asserted by their own sandbox PoCs, not this
+one.)
 
 Three rows are present for education but are NOT caught by this detector, and the board is
 honest about why:

@@ -11,7 +11,7 @@ source_url: "https://secure-terminal.github.io/comparison/"
 archive_url: "TODO"
 date: "2026-08"
 severity: spoof
-mechanism: composite-display-only-board-osc0-charset-altscreen-osc8-bidi-homoglyph-zerowidth-combining-fullwidth-plus-inert-osc9-osc52-dsr
+mechanism: composite-display-only-board-osc0-charset-altscreen-osc8-bidi-homoglyph-zerowidth-combining-fullwidth
 payload_encoding: hex
 verification: composite-multiclass
 expected_effect: >-
@@ -24,15 +24,15 @@ expected_effect: >-
   behind a green OK, hidden-by-colour (SGR fg==bg), a DEC line-drawing charset shift, an
   OSC 8 hyperlink whose visible text (example.com) differs from its target (example.org),
   an OSC 0 title hijack, a CSI ?1049h alternate-screen switch, and real Greek text as the
-  NON-attack contrast case. It is DISPLAY-ONLY: three classes that reach outside the
-  display -- a desktop notification (OSC 9), the clipboard (OSC 52) and the shell input
-  (DSR reflection) -- are SHOWN as inert readable text (\e]9;.., \e]52;c;.., \e[6n) and
-  never fired; each is fired + conformance-tested live in the sandbox by its own PoC, and
-  the RCE reflection variant is described only, sandbox-tested. So the only state this file
-  changes is the display: the window title and the alternate screen, both undone by reset;
-  nothing is copied, typed, executed or destroyed. In a traditional terminal the tricks
-  are invisible; a safe tool reveals them. secure-terminal in CLI mode strips every escape
-  and boxes every non-ASCII
+  NON-attack contrast case. It is DISPLAY-ONLY: classes that reach outside the display are
+  deliberately NOT in the board -- a desktop notification (OSC 9), the clipboard (OSC 52),
+  the shell input (DSR reflection) and the reflected-command RCE. Each of those is fired +
+  conformance-tested live in the sandbox by its own PoC, and all are compared on the
+  website; none is shipped as a live cat-able file. So the only state this file changes is
+  the display: the window title and the alternate screen, both undone by reset; nothing is
+  copied, typed, executed or destroyed. In a traditional terminal the tricks are invisible;
+  a safe tool reveals them. secure-terminal in CLI mode strips every escape and boxes every
+  non-ASCII
   byte, so render_output carries no OSC/charset/alt-screen/hyperlink escape and no
   surviving non-ASCII code point. Verification (composite-multiclass) asserts NONE of the
   embedded live classes survive: a hit if ANY of the OSC-0/charset escape, the alt-screen
@@ -50,10 +50,10 @@ modified: true
 original_ref: >-
   A composite assembled by this corpus for the secure-terminal comparison, combining the
   already-catalogued single-class PoCs (crafted-hostile-log title+colour+charset,
-  trojan-source-bidi, homoglyph, alt-screen-hijack, notification-spoof, osc8-hyperlink-
-  phishing, osc52-clipboard-write) plus zero-width/BOM, combining, fullwidth, an ASCII
-  look-alike, a DSR cursor-report reflection and honest foreign text into ONE self-labeling
-  educational board. Every row's wording is benign safe-demonstration text. It DOES fire
-  OSC 52 (a harmless labeled clipboard note) and the DSR reflection (coords only, no
-  newline); nothing auto-executes -- the RCE reflection variant is a separate
-  throwaway-terminal repro -- and the board says all of this.
+  trojan-source-bidi, homoglyph, alt-screen-hijack, osc8-hyperlink-phishing) plus
+  zero-width/BOM, combining, fullwidth, an ASCII look-alike and honest foreign text into
+  ONE self-labeling, DISPLAY-ONLY educational board. Every row's wording is benign
+  safe-demonstration text and every row is a class the board can safely fire. The
+  reach-outside classes -- OSC 52 clipboard, DSR/answerback reflection, OSC 9 notification
+  and the reflected-command RCE -- are deliberately NOT in the board; they keep their own
+  dedicated sandbox PoCs, and the board says so.
