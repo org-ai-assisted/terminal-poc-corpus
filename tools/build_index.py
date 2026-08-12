@@ -33,7 +33,10 @@ def main():
             continue
         with open(meta_path, encoding='utf-8') as fh:
             meta = yaml.safe_load(fh)
-        rows.append({k: meta.get(k) for k in FIELDS})
+        # Omit absent optional fields (only `cve` is optional) rather than
+        # emitting `null` -- a null list field is a footgun for consumers that
+        # iterate `entry['cve']`; an absent key is handled by `.get('cve', [])`.
+        rows.append({k: meta.get(k) for k in FIELDS if meta.get(k) is not None})
     index = {
         'schema': 'schema/poc.schema.json',
         'count': len(rows),
