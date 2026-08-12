@@ -1,5 +1,5 @@
 {
-  "count": 24,
+  "count": 25,
   "pocs": [
     {
       "archive_url": "TODO",
@@ -352,6 +352,19 @@
       "severity": "spoof",
       "source_url": "https://trojansource.codes/",
       "title": "Trojan-Source bidirectional-override deception"
+    },
+    {
+      "archive_url": "TODO",
+      "author": "secure-terminal corpus composite (Boucher & Anderson 2021 bidi/homoglyph; CyberArk / Eviatar Gerzi 2021 title+charset; HD Moore 2003 escape classes)",
+      "class": "tui-showcase",
+      "cve": [],
+      "date": "2026-08",
+      "id": "tui-showcase",
+      "mechanism": "composite-honest-board-osc0-charset-altscreen-osc8-osc9-bidi-homoglyph-zerowidth-combining-fullwidth",
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://secure-terminal.github.io/comparison/",
+      "title": "One safe file: a self-labeling board that shows every terminal text-attack class at once"
     },
     {
       "archive_url": "http://web.archive.org/web/20260617084903/https://hdm.io/writing/termulation.txt",

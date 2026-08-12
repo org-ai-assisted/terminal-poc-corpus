@@ -1,0 +1,50 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: tui-showcase
+title: "One safe file: a self-labeling board that shows every terminal text-attack class at once"
+class: tui-showcase
+cve: []
+affected:
+  - product: "terminals honouring OSC 0 title, DEC charset, CSI ?1049h alt-screen, OSC 8/9, bidi, combining, fullwidth, and non-ASCII code points"
+    tested: false
+author: "secure-terminal corpus composite (Boucher & Anderson 2021 bidi/homoglyph; CyberArk / Eviatar Gerzi 2021 title+charset; HD Moore 2003 escape classes)"
+source_url: "https://secure-terminal.github.io/comparison/"
+archive_url: "TODO"
+date: "2026-08"
+severity: spoof
+mechanism: composite-honest-board-osc0-charset-altscreen-osc8-osc9-bidi-homoglyph-zerowidth-combining-fullwidth
+payload_encoding: hex
+verification: composite-multiclass
+expected_effect: >-
+  An HONEST, self-labeling educational file that, cat'd at a shell, paints a full-screen
+  "WHAT YOU SEE vs WHAT IS THERE" board where every row NAMES a text-attack class and
+  shows a LIVE example of it: homoglyph (Cyrillic U+0430 and Greek U+03BF), ASCII
+  look-alike (rn->m, no Unicode), bidi override (U+202E flips report cod.exe -> report
+  exe.doc), zero-width (U+200B), invisible/BOM (U+FEFF), combining marks (Zalgo),
+  fullwidth forms (U+FF2x), a control-byte CR + ESC[2K repaint that hides a red FAILED
+  behind a green OK, hidden-by-colour (SGR fg==bg), a DEC line-drawing charset shift, an
+  OSC 8 hyperlink whose visible text (example.com) differs from its target
+  (example.org), an OSC 9 desktop notification (safe wording), an OSC 0 title hijack, a
+  CSI ?1049h alternate-screen switch, and real Greek text as the NON-attack contrast
+  case. The board states which classes it deliberately does NOT fire because they reach
+  into your session (OSC 52 clipboard write, input reflection/answerback) and tells the
+  reader to run reset. In a traditional terminal the tricks are invisible; a safe tool
+  reveals them. secure-terminal in CLI mode strips every escape and boxes every non-ASCII
+  byte, so render_output carries no OSC/charset/alt-screen/hyperlink/notification escape
+  and no surviving non-ASCII code point. Verification (composite-multiclass) asserts NONE
+  of the embedded classes survive: a hit if ANY of the OSC-0/charset escape, the
+  alt-screen escape, an OSC 8/9 escape, or any non-ASCII code point is left in the render.
+  The ASCII look-alike row is pure ASCII (nothing to strip), so it is present for
+  education but not conformance-checked -- a Unicode-aware tool cannot catch rn->m; only
+  reading character by character does. The OSC 8 link's visible-text-vs-target mismatch is
+  likewise conformance-checked by the dedicated osc8-hyperlink-phishing PoC (a different
+  observable); here the escape's mere survival is what this check covers.
+canary: "terminal attack-class demo (safe)"
+modified: true
+original_ref: >-
+  A composite assembled by this corpus for the secure-terminal comparison, combining the
+  already-catalogued single-class PoCs (crafted-hostile-log title+colour+charset,
+  trojan-source-bidi, homoglyph, alt-screen-hijack, notification-spoof, osc8-hyperlink-
+  phishing) plus zero-width/BOM, combining, fullwidth, an ASCII look-alike and honest
+  foreign text into ONE self-labeling educational board. Every row's wording is benign
+  safe-demonstration text; no destructive, executable, clipboard-altering or
+  input-injecting content is present, and the board says so.

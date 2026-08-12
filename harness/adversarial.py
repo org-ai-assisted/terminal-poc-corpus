@@ -289,6 +289,28 @@ def _det_crafted(text):
     return '\x1b]0;' in text or '\x1b(0' in text
 
 
+def _det_composite(text):
+    # a hit: ANY embedded class survived the render -- the OSC-0 title-set or DEC
+    # charset-shift (crafted), an alternate-screen enable (screen-hijack), an OSC 8
+    # hyperlink / OSC 9 notification / OSC 52 clipboard escape, a DSR cursor-report query
+    # (output->input reflection), any surviving C0/C1 control byte (except newline), or
+    # any raw non-ASCII code point (a surviving homoglyph, bidi control,
+    # zero-width/combining/fullwidth byte, or foreign char). One assertion covers every
+    # class the tui-showcase file carries: a regression in any single class re-introduces
+    # one of these, so the check fails.
+    # a surviving ESC (0x1b) means an escape was NOT stripped; NUL (0x00) is a truncation
+    # byte. NOTE \b \t \n \r are DELIBERATELY honored by secure-terminal as line-local
+    # edits (a \r overwrites only the CURRENT line, never an earlier one -- vertical
+    # addressing IS stripped), so they are NOT flagged here; the stricter stcat path is
+    # what strips \r, and the CR/backspace class is not claimed neutralized by this widget
+    # render (see expected.md).
+    if '\x1b' in text or '\x00' in text:
+        return True
+    return (_det_crafted(text) or _det_altscreen(text) or _det_deception(text)
+            or '\x1b]8;' in text or '\x1b]9;' in text or '\x1b]52;' in text
+            or '\x1b[6n' in text)
+
+
 def _det_paste(text):
     return '\x1b' in text or '\x9b' in text
 
@@ -310,6 +332,7 @@ _MODES = {
     'notification-spoof': (_obs_notifications, _det_notify),
     'screen-hijack': (_obs_render_strip, _det_altscreen),
     'crafted-composite': (_obs_render_strip, _det_crafted),
+    'composite-multiclass': (_obs_render_strip, _det_composite),
     'denial-of-service': (_obs_timing, _det_timing),
     'decoder-crash': (_obs_timing, _det_timing),
     'paste-bypass': (_obs_paste, _det_paste),
@@ -331,6 +354,7 @@ def _vulnerable_observable(mode):
         'notification-spoof': [POC_TOKEN],                # a notification bearing the token
         'screen-hijack': 'log\x1b[?1049h\x1b[?1047h\x1b[?47h\x1b[2J' + POC_TOKEN,  # any alt-screen enable survived
         'crafted-composite': 'log\x1b]0;fake\x07\x1b(0lqqqk',  # OSC-0 + charset escapes survived
+        'composite-multiclass': 'log\x1b]0;fake\x07\x1b(0lqqqk\x1b[?1049h' + chr(0x202e) + 'x',  # OSC-0 + charset + alt-screen + bidi non-ASCII survived
         'denial-of-service': (3.0, False),                # took too long
         'decoder-crash': (0.0, True),                     # the decoder crashed
         'paste-bypass': 'x\x1b[201~' + POC_TOKEN,         # the guard-breaking ESC survived
