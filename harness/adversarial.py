@@ -329,7 +329,7 @@ def _vulnerable_observable(mode):
         'clipboard-exfil': POC_TOKEN,                     # clipboard set to the token
         'hyperlink-mismatch': ['https://attacker.example/' + POC_TOKEN],  # anchor -> token
         'notification-spoof': [POC_TOKEN],                # a notification bearing the token
-        'screen-hijack': 'log\x1b[?1049h\x1b[2J' + POC_TOKEN,  # alt-screen enable survived
+        'screen-hijack': 'log\x1b[?1049h\x1b[?1047h\x1b[?47h\x1b[2J' + POC_TOKEN,  # any alt-screen enable survived
         'crafted-composite': 'log\x1b]0;fake\x07\x1b(0lqqqk',  # OSC-0 + charset escapes survived
         'denial-of-service': (3.0, False),                # took too long
         'decoder-crash': (0.0, True),                     # the decoder crashed
