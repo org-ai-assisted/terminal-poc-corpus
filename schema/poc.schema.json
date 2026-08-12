@@ -80,7 +80,8 @@
         "notification-spoof",
         "title-change-dos",
         "parser-dos",
-        "alt-screen-hijack"
+        "alt-screen-hijack",
+        "crafted-hostile-log"
       ],
       "type": "string"
     },
@@ -171,7 +172,8 @@
         "notification-spoof",
         "charset-deception",
         "cursor-spoof",
-        "screen-hijack"
+        "screen-hijack",
+        "crafted-composite"
       ],
       "type": "string"
     }

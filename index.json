@@ -1,5 +1,5 @@
 {
-  "count": 23,
+  "count": 24,
   "pocs": [
     {
       "archive_url": "TODO",
@@ -56,6 +56,19 @@
       "severity": "spoof",
       "source_url": "https://secure-terminal.github.io",
       "title": "A charset shift (ESC ( 0, DEC special graphics) makes plain ASCII rend"
+    },
+    {
+      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "author": "Eviatar Gerzi (CyberArk)",
+      "class": "crafted-hostile-log",
+      "cve": [],
+      "date": "2021-03",
+      "id": "crafted-hostile-log",
+      "mechanism": "osc-title-plus-charset-shift",
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "title": "A crafted log hijacks the title, stuck colour, and charset in one stream"
     },
     {
       "archive_url": "TODO",

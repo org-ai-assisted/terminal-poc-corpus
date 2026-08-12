@@ -282,6 +282,13 @@ def _det_altscreen(text):
     return any(seq in text for seq in ('\x1b[?1049h', '\x1b[?1047h', '\x1b[?47h'))
 
 
+def _det_crafted(text):
+    # a hit: the OSC-0 title-set or the DEC charset-shift escape survived, so the
+    # crafted log would hijack the title / corrupt the charset. secure-terminal strips
+    # both.
+    return '\x1b]0;' in text or '\x1b(0' in text
+
+
 def _det_paste(text):
     return '\x1b' in text or '\x9b' in text
 
@@ -302,6 +309,7 @@ _MODES = {
     'hyperlink-mismatch': (_obs_anchors, _det_anchors),
     'notification-spoof': (_obs_notifications, _det_notify),
     'screen-hijack': (_obs_render_strip, _det_altscreen),
+    'crafted-composite': (_obs_render_strip, _det_crafted),
     'denial-of-service': (_obs_timing, _det_timing),
     'decoder-crash': (_obs_timing, _det_timing),
     'paste-bypass': (_obs_paste, _det_paste),
@@ -322,6 +330,7 @@ def _vulnerable_observable(mode):
         'hyperlink-mismatch': ['https://attacker.example/' + POC_TOKEN],  # anchor -> token
         'notification-spoof': [POC_TOKEN],                # a notification bearing the token
         'screen-hijack': 'log\x1b[?1049h\x1b[2J' + POC_TOKEN,  # alt-screen enable survived
+        'crafted-composite': 'log\x1b]0;fake\x07\x1b(0lqqqk',  # OSC-0 + charset escapes survived
         'denial-of-service': (3.0, False),                # took too long
         'decoder-crash': (0.0, True),                     # the decoder crashed
         'paste-bypass': 'x\x1b[201~' + POC_TOKEN,         # the guard-breaking ESC survived
