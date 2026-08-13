@@ -13,23 +13,13 @@
 #     rather than on any parser defect -- red since 2026-07-20 for that reason.
 name: adversarial-corpus
 
+## The opt-in gate + the timeout live at the JOB level (below); `on:` sections take
+## only trigger keys, so they carry none here.
 on:
   push:
-    ## CI runs only where we enabled it. Unset variable -> the job is
-    ## skipped, no runner is allocated, and the run stays green: upstream
-    ## and forks are never handed a red X for a lane they did not opt into.
-    ## A fork that WANTS our CI sets the same variable in its own repo.
-    if: vars.CI_ENABLED_ORG_AI_ASSISTED == 'true'
-    timeout-minutes: 15
     branches: [ master ]
   pull_request:
   workflow_dispatch:
-    ## CI runs only where we enabled it. Unset variable -> the job is
-    ## skipped, no runner is allocated, and the run stays green: upstream
-    ## and forks are never handed a red X for a lane they did not opt into.
-    ## A fork that WANTS our CI sets the same variable in its own repo.
-    if: vars.CI_ENABLED_ORG_AI_ASSISTED == 'true'
-    timeout-minutes: 15
 
 permissions:
   contents: read
@@ -60,11 +50,14 @@ jobs:
 
       - name: Check out the corpus
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
       - name: Check out secure-terminal (public)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           repository: secure-terminal/secure-terminal
           path: _secure-terminal
+          persist-credentials: false
       - name: Install dependencies
         # python3-pyqt6.qtmultimedia is REQUIRED, not optional: usr/bin/secure-terminal
         # preflight-checks its runtime dependencies and exits 1 naming the first
@@ -91,6 +84,13 @@ jobs:
           python3 harness/run.py --self-test
           python3 harness/adversarial.py --self-test
           python3 harness/adversarial.py
+      - name: Corpus-coverage audit (every schema class has a real-effect oracle)
+        env:
+          SECURE_TERMINAL_REPO: ${{ github.workspace }}/_secure-terminal
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python3 harness/coverage_audit.py --canary
+          python3 harness/coverage_audit.py
       - name: Acquire reviewed conformance suites (pinned SHAs) + run conformance
         env:
           SECURE_TERMINAL_REPO: ${{ github.workspace }}/_secure-terminal

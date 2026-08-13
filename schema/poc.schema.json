@@ -76,12 +76,14 @@
         "trojan-source-bidi",
         "homoglyph",
         "bracketed-paste-bypass",
+        "mouse-tracking-reflection",
         "cursor-addressing-spoof",
         "notification-spoof",
         "title-change-dos",
         "parser-dos",
         "alt-screen-hijack",
-        "crafted-hostile-log"
+        "crafted-hostile-log",
+        "tui-showcase"
       ],
       "type": "string"
     },
@@ -159,7 +161,7 @@
     },
     "verification": {
       "default": "canary-command",
-      "description": "How a hit is detected. canary-command: a fired injection runs the safe canary command (writes the marker). display-deception: the rendered text differs from the logical text (bidi/homoglyph/charset/cursor). clipboard-exfil: the payload silently sets the clipboard to the canary token. hyperlink-mismatch: the visible link text differs from its target. denial-of-service: the payload tries to hang/exhaust the terminal (a secure terminal processes it in bounded time). decoder-crash: a decoder (Sixel/ReGIS) overflow (a secure terminal never runs the decoder). paste-bypass: an escape that breaks the bracketed-paste guard (a secure terminal's paste sanitizer strips it). screen-hijack: an alternate-screen enable escape (CSI ?1049h / ?1047h / ?47h) survives into the rendered output, so the terminal would switch to the alt buffer -- a stuck full-screen hijack (a secure terminal strips it). crafted-composite: an OSC-0 title-set (ESC ]0;) or a DEC line-drawing charset shift (ESC (0) survives, so a crafted log would hijack the window title or corrupt the charset (a secure terminal strips both). Non-command modes carry no directly-executable shell command, so they are inherently harmless at rest.",
+      "description": "How a hit is detected. canary-command: a fired injection runs the safe canary command (writes the marker). display-deception: the rendered text differs from the logical text (bidi/homoglyph/charset/cursor). clipboard-exfil: the payload silently sets the clipboard to the canary token. hyperlink-mismatch: the visible link text differs from its target. denial-of-service: the payload tries to hang/exhaust the terminal (a secure terminal processes it in bounded time). decoder-crash: a decoder (Sixel/ReGIS) overflow (a secure terminal never runs the decoder). paste-autoexec: a paste that would auto-execute -- fed through the REAL GUI paste path (insertFromMimeData), a hit is a submit byte (CR or LF) reaching the child with NO review interposed (a secure terminal holds a multi-line/embedded-CR paste for review and strips a single-line paste's trailing submit, so nothing auto-runs). mouse-tracking-reflection: after a DECSET mouse-enable, real mouse/wheel events elicit an xterm mouse-report write-back on the child's stdin (a secure terminal has no mouse-report path, so it writes nothing). screen-hijack: an alternate-screen enable escape (CSI ?1049h / ?1047h / ?47h) survives into the rendered output, so the terminal would switch to the alt buffer -- a stuck full-screen hijack (a secure terminal strips it). crafted-composite: an OSC-0 title-set (ESC ]0;) or a DEC line-drawing charset shift (ESC (0) survives, so a crafted log would hijack the window title or corrupt the charset (a secure terminal strips both). screen-dump-to-file: a Media Copy / print escape (CSI ... i -- printer-controller-on 5 i, print-screen i, printer-off 4 i) survives the render, so a vulnerable terminal would dump its screen to a printer / file (a secure terminal strips every escape, so none survives). composite-multiclass: a single file carrying MANY classes at once (OSC-0 title, charset shift, alt-screen enable, bidi, homoglyph, zero-width, foreign) -- a hit if ANY of them survives the render (title/charset escape, alt-screen escape, or any non-ASCII code point), so the one check covers every embedded class and fails if even one is passed through. Non-command modes carry no directly-executable shell command, so they are inherently harmless at rest.",
       "enum": [
         "canary-command",
         "display-deception",
@@ -167,13 +169,16 @@
         "hyperlink-mismatch",
         "denial-of-service",
         "decoder-crash",
-        "paste-bypass",
+        "paste-autoexec",
+        "mouse-tracking-reflection",
         "reflection",
         "notification-spoof",
         "charset-deception",
         "cursor-spoof",
         "screen-hijack",
-        "crafted-composite"
+        "screen-dump-to-file",
+        "crafted-composite",
+        "composite-multiclass"
       ],
       "type": "string"
     }

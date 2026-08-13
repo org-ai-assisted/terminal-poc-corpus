@@ -25,8 +25,10 @@ CONFINED: this decodes live terminal bytes, so it runs in the sandbox or in GitH
 import binascii
 import glob
 import os
+import re
 import subprocess
 import sys
+import threading
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -105,16 +107,35 @@ def _feed_output(term, raw):
     read_fd, write_fd = os.pipe()
     old = term._fd
     term._fd = read_fd
+    # Write on a thread so the reader (_on_readable) drains the pipe concurrently.
+    # A payload larger than the ~64 KiB pipe buffer would otherwise block os.write
+    # forever -- nothing has read a byte yet, since _on_readable only runs after the
+    # write returns -- and deadlock the whole sweep. The memoryview loop also finishes
+    # a partial write (a bare os.write may return short). Kept a pipe, not a temp file,
+    # so the decoded live payload stays in RAM and never touches disk (SAFETY.md).
+    def _pump():
+        try:
+            buf = memoryview(raw)
+            while buf:
+                buf = buf[os.write(write_fd, buf):]
+        finally:
+            os.close(write_fd)
+    # _on_readable() consumes ONE 65536-byte read per call, so a payload larger than
+    # that (or the pipe buffer) needs REPEATED reads. Drain to EOF -- a zero-byte read
+    # fires shell_exited -- so a detector sees the WHOLE payload; reading only the
+    # first chunk could leave a later-class attack in the unread tail and falsely
+    # report it neutralized.
+    drained = []
+    term.shell_exited.connect(lambda *_: drained.append(True))
+    writer = threading.Thread(target=_pump)
+    writer.start()
     try:
-        os.write(write_fd, raw)
-        os.close(write_fd)
-        write_fd = None
-        term._on_readable()
+        while not drained:
+            term._on_readable()
     finally:
         term._fd = old
         os.close(read_fd)
-        if write_fd is not None:
-            os.close(write_fd)
+        writer.join()
 
 
 _APP = None
@@ -220,12 +241,60 @@ def _obs_notifications(payload):
     return fired
 
 
-def _obs_paste(payload):
-    """secure-terminal's paste-sanitized text (the bracketed-paste guard path)."""
+def _obs_paste_autoexec(payload):
+    """Drive the REAL GUI paste path and report the actual security effect.
+
+    The old paste oracle only asked "did an ESC survive sanitize_paste?" -- a PROXY
+    that the pastejacking bug passed while the terminal still auto-ran the payload.
+    This feeds the payload as a real clipboard paste (insertFromMimeData) into a
+    line-mode terminal (the secure default: bracketed paste off, so a trailing submit
+    WOULD auto-run) and returns (bytes_written_to_child, review_held): did a submit
+    reach the child, and was a review bar interposed first. That is the effect an
+    attacker cares about, not whether an escape byte was stripped."""
     if ST_PKG and ST_PKG not in sys.path:
         sys.path.insert(0, ST_PKG)
-    from secure_terminal.sanitize import sanitize_paste           # noqa: E402
-    return sanitize_paste(payload.decode('utf-8', 'replace'))
+    _app()                                 # QApplication before any QWidget
+    from secure_terminal.terminal import SecureTerminal           # noqa: E402
+    from PyQt6.QtCore import QMimeData                            # noqa: E402
+    term = SecureTerminal(command='/bin/cat')      # line mode (safe default)
+    sent = []
+    reviewed = []
+    term._write = sent.append              # pylint: disable=protected-access
+    term.paste_review_requested.connect(lambda raw, delay: reviewed.append(raw))
+    mime = QMimeData()
+    mime.setText(payload.decode('utf-8', 'replace'))
+    term.insertFromMimeData(mime)
+    written = b''.join(bytes(chunk) for chunk in sent)
+    term.close()
+    return (written, bool(reviewed))
+
+
+def _obs_mouse_report(payload):
+    """Enable mouse tracking with a DECSET payload, then post REAL mouse + wheel
+    events over the offscreen widget and return the bytes written back to the pty. A
+    terminal that implements xterm mouse reporting answers each event with a
+    '\\x1b[<...M/m' report on the child's stdin -- output-driven input, the same
+    "output becomes input" class as a DSR reflection. secure-terminal has no
+    mouse-report path at all, so no mouse action can write to the child."""
+    from PyQt6.QtGui import QMouseEvent, QWheelEvent              # noqa: E402
+    from PyQt6.QtCore import Qt, QEvent, QPointF, QPoint          # noqa: E402
+    term = _new_term(enable_osc=True)
+    _feed_output(term, payload)            # the DECSET mouse-enable sequence
+    sent = []
+    term._write = sent.append              # pylint: disable=protected-access
+    here, there = QPointF(10, 5), QPointF(12, 6)
+    left, none = Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton
+    nomod = Qt.KeyboardModifier.NoModifier
+    term.mousePressEvent(QMouseEvent(QEvent.Type.MouseButtonPress, here, here,
+                                     left, left, nomod))
+    term.mouseMoveEvent(QMouseEvent(QEvent.Type.MouseMove, there, there,
+                                    none, left, nomod))
+    term.mouseReleaseEvent(QMouseEvent(QEvent.Type.MouseButtonRelease, there, there,
+                                       left, none, nomod))
+    term.wheelEvent(QWheelEvent(there, there, QPoint(0, 0), QPoint(0, -120),
+                                none, nomod, Qt.ScrollPhase.NoScrollPhase, False))
+    term.close()
+    return sent
 
 
 def _obs_timing(payload):
@@ -276,10 +345,30 @@ def _det_notify(texts):
     return any(POC_TOKEN in str(text) for text in texts)
 
 
+def _esc_body_leak(text, bodies):
+    """Defense-in-depth for the escape-survival detectors: a broken neutralizer that
+    mangles the ESC introducer but LEAKS the sequence body as ASCII text (e.g. '[5i',
+    '[?1049h') would slip an \\x1b-keyed check. These bodies are distinctive to the class's
+    payload, so flagging them adds no false positive against that PoC."""
+    return any(body in text for body in bodies)
+
+
 def _det_altscreen(text):
-    # a hit: an alternate-screen enable escape survived, so the terminal would switch
-    # to the alt buffer -- a stuck full-screen hijack. secure-terminal strips it.
-    return any(seq in text for seq in ('\x1b[?1049h', '\x1b[?1047h', '\x1b[?47h'))
+    # a hit: an alternate-screen enable escape survived, so the terminal would switch to
+    # the alt buffer -- a stuck full-screen hijack. secure-terminal strips it. The body-
+    # leak arm also fires if a mangled-ESC neutralizer leaks the '[?1049h' body as text.
+    return (any(seq in text for seq in ('\x1b[?1049h', '\x1b[?1047h', '\x1b[?47h'))
+            or _esc_body_leak(text, ('[?1049h', '[?1047h', '[?47h')))
+
+
+def _det_screen_dump(text):
+    # a hit: a Media Copy / print sequence survived the render (CSI ... i -- e.g. the
+    # printer-controller-on 'CSI 5 i', print-screen 'CSI i', printer-off 'CSI 4 i'),
+    # so a vulnerable terminal would dump the screen to its printer / a file.
+    # secure-terminal strips every escape, so none survives. The body-leak arm also fires
+    # if a mangled-ESC neutralizer leaks the distinctive '[5i'/'[4i' body as text.
+    return (re.search(r'\x1b\[[0-9;?]*i', text) is not None
+            or _esc_body_leak(text, ('[5i', '[4i')))
 
 
 def _det_crafted(text):
@@ -289,8 +378,34 @@ def _det_crafted(text):
     return '\x1b]0;' in text or '\x1b(0' in text
 
 
-def _det_paste(text):
-    return '\x1b' in text or '\x9b' in text
+def _det_composite(text):
+    # a hit: ANY embedded class survived the render. A surviving ESC (0x1b) covers every
+    # escape class at once -- OSC-0 title, DEC charset shift, alt-screen enable, OSC 8/9/52,
+    # and the DSR cursor-report query -- since each carries an ESC; NUL (0x00) is a
+    # truncation byte; and _det_deception catches any surviving non-ASCII code point
+    # (homoglyph, bidi control, zero-width, combining, fullwidth, foreign). So one
+    # assertion covers every class the tui-showcase file carries: a regression in any
+    # single class re-introduces an ESC, a NUL, or a non-ASCII byte.
+    #
+    # NOTE \b \t \n \r are DELIBERATELY honored by secure-terminal's widget as line-local
+    # edits (a \r overwrites only the CURRENT line, never an earlier one -- vertical
+    # addressing IS stripped), so they are NOT flagged; the CR+erase class is neutralized
+    # by the stricter stcat path, not this widget render (see expected.md).
+    return '\x1b' in text or '\x00' in text or _det_deception(text)
+
+
+def _det_paste_autoexec(observed):
+    """A hit: a submit byte (CR or LF) reached the child. Either delimiter submits the
+    line, and the paste-trailing-newline PoC's payload ends in LF, so both must count.
+    The submit byte on the child's input IS the auto-exec, so it is a hit REGARDLESS of
+    whether a review was also signalled: a terminal that raises a review bar and STILL
+    forwards CR/LF has auto-executed, and gating the hit on `not reviewed` would let that
+    exact bypass pass. `reviewed` is kept for diagnostics only, never to suppress a hit.
+    Both genuinely safe outcomes still pass because they write NO submit byte to the
+    child: held-for-review (nothing was written) and submit-stripped (the command reached
+    the prompt but carries no submit byte, so it waits for the user's Enter)."""
+    written, _reviewed = observed
+    return b'\r' in written or b'\n' in written
 
 
 def _det_timing(elapsed_crashed):
@@ -309,10 +424,18 @@ _MODES = {
     'hyperlink-mismatch': (_obs_anchors, _det_anchors),
     'notification-spoof': (_obs_notifications, _det_notify),
     'screen-hijack': (_obs_render_strip, _det_altscreen),
+    'screen-dump-to-file': (_obs_render_strip, _det_screen_dump),
     'crafted-composite': (_obs_render_strip, _det_crafted),
+    'composite-multiclass': (_obs_render_strip, _det_composite),
     'denial-of-service': (_obs_timing, _det_timing),
     'decoder-crash': (_obs_timing, _det_timing),
-    'paste-bypass': (_obs_paste, _det_paste),
+    # Real-effect paste oracle: does a submit reach the child with no review? (The
+    # retired 'paste-bypass' mode only checked whether an ESC survived sanitize_paste
+    # -- a proxy the pastejacking bug passed while still auto-running the payload.)
+    'paste-autoexec': (_obs_paste_autoexec, _det_paste_autoexec),
+    # Mouse tracking: a DECSET enable plus real mouse/wheel events must elicit no
+    # mouse-report write-back on the child's stdin.
+    'mouse-tracking-reflection': (_obs_mouse_report, _det_writeback),
 }
 
 
@@ -330,10 +453,17 @@ def _vulnerable_observable(mode):
         'hyperlink-mismatch': ['https://attacker.example/' + POC_TOKEN],  # anchor -> token
         'notification-spoof': [POC_TOKEN],                # a notification bearing the token
         'screen-hijack': 'log\x1b[?1049h\x1b[?1047h\x1b[?47h\x1b[2J' + POC_TOKEN,  # any alt-screen enable survived
+        'screen-dump-to-file': 'log\x1b[5i\x1b[i' + POC_TOKEN,  # a Media Copy print/dump escape survived
         'crafted-composite': 'log\x1b]0;fake\x07\x1b(0lqqqk',  # OSC-0 + charset escapes survived
+        'composite-multiclass': 'log\x1b]0;fake\x07\x1b(0lqqqk\x1b[?1049h' + chr(0x202e) + 'x',  # OSC-0 + charset + alt-screen + bidi non-ASCII survived
         'denial-of-service': (3.0, False),                # took too long
         'decoder-crash': (0.0, True),                     # the decoder crashed
-        'paste-bypass': 'x\x1b[201~' + POC_TOKEN,         # the guard-breaking ESC survived
+        # a submit (CR) reached the child EVEN THOUGH a review was signalled -> the
+        # review bar was shown but the line still auto-executed. This is the fail-open
+        # case: a detector that suppressed the hit on `reviewed` would miss it.
+        'paste-autoexec': (b'echo ' + POC_TOKEN.encode() + b'\r', True),
+        # the terminal wrote an SGR mouse report back onto the child's stdin
+        'mouse-tracking-reflection': [b'\x1b[<0;10;5M'],
     }[mode]
 
 
@@ -350,8 +480,21 @@ def self_test():
             'fires on a vulnerable case' if fired else 'DID NOT FIRE (tautology!)'))
         if not fired:
             broken.append(mode)
+    # Defense-in-depth: the escape-survival detectors with a distinctive body must ALSO
+    # fire when a broken neutralizer mangles the ESC introducer but leaks the sequence
+    # body as ASCII text. A pre-guard detector keyed only on \x1b misses this, so this
+    # canary FAILS on the old code.
+    body_broken = []
+    for mode, leak in (('screen-hijack', 'log[?1049h[2J' + POC_TOKEN),
+                       ('screen-dump-to-file', 'log[5i[i' + POC_TOKEN)):
+        fired = bool(_MODES[mode][1](leak))
+        print('%-9s %-20s body-leak canary %s' % (
+            'TRIGGERS' if fired else 'DEAD', mode,
+            'fires on a leaked escape body' if fired else 'DID NOT FIRE (guard missing!)'))
+        if not fired:
+            body_broken.append(mode)
     print('-- %d/%d class canaries trigger' % (len(_MODES) - len(broken), len(_MODES)))
-    return 1 if broken else 0
+    return 1 if (broken or body_broken) else 0
 
 
 def main(argv=None):
@@ -378,16 +521,40 @@ def main(argv=None):
             continue
         poc_id = os.path.basename(poc_dir)
         with open(meta_path, encoding='utf-8') as handle:
-            mode = yaml.safe_load(handle).get('verification', 'canary-command')
+            # A corpus meta.yaml is untrusted data: an empty / comment-only / bare-scalar
+            # file makes safe_load return non-dict (or None), and a bare .get() would
+            # AttributeError and abort the whole sweep. Coerce to a mapping first.
+            loaded = yaml.safe_load(handle)
+            mode = (loaded if isinstance(loaded, dict) else {}).get(
+                'verification', 'canary-command')
         pair = _MODES.get(mode)
         if pair is None:
             print('SKIP       %-41s unknown verification mode %r' % (poc_id, mode))
             continue
-        tested += 1
         observe, detector = pair
-        if detector(observe(_decode(payload_hex))):
+        # payload.hex is untrusted corpus data too (same class as the meta.yaml guard
+        # above): an odd-nibble, non-hex, or non-ASCII file makes _decode raise and would
+        # abort the WHOLE sweep on one bad sibling. Skip that PoC, keep testing the rest.
+        try:
+            raw = _decode(payload_hex)
+        except (binascii.Error, UnicodeDecodeError) as exc:
+            print('SKIP       %-41s undecodable payload.hex: %s' % (poc_id, exc))
+            continue
+        tested += 1
+        hit = bool(detector(observe(raw)))
+        # UNIVERSAL reflection property (#31 P1): output must NEVER induce an input
+        # reply. Applied to EVERY class, not only the reflection PoCs -- feed the
+        # payload as program output with every OSC reach-out enabled and assert the
+        # write-spy stays empty. secure-terminal answers no query in any mode, so the
+        # single defensible write-back (a granted OSC 52 reply) is never provoked by
+        # output alone. Its positive control is the 'reflection' self-test entry (a
+        # synthetic reply the writeback detector fires on).
+        reflected = bool(_det_writeback(_obs_writeback(raw)))
+        if hit or reflected:
             fired += 1
-            print('VULNERABLE %-41s [%s] the canary FIRED!' % (poc_id, mode))
+            why = mode if hit else 'reflection-property'
+            tail = ' (+reflection write-back)' if hit and reflected else ''
+            print('VULNERABLE %-41s [%s] the canary FIRED!%s' % (poc_id, why, tail))
         else:
             print('ok         %-41s [%s] neutralized' % (poc_id, mode))
     print('-- %d PoC(s) tested; %d fired' % (tested, fired))

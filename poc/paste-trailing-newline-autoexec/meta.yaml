@@ -1,0 +1,30 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: paste-trailing-newline-autoexec
+title: "Pasted command with a trailing newline auto-executes on paste"
+class: bracketed-paste-bypass
+cve: []
+affected:
+  - product: "terminals that deliver paste as typed input (no bracketed-paste guard)"
+    tested: false
+author: "(pastejacking class; publicly documented)"
+source_url: "https://secure-terminal.github.io"
+archive_url: "TODO"
+date: "2021"
+severity: injection
+mechanism: paste-trailing-submit
+verification: paste-autoexec
+payload_encoding: hex
+expected_effect: >-
+  A pasted string that ends in a newline carries its own submit: a terminal that
+  delivers paste as typed input runs the command the instant it is pasted, before
+  it can be read. secure-terminal reviews the real paste path and strips a
+  single-line paste's trailing submit, so the command waits at the prompt for the
+  user's own Enter and no CR reaches the child.
+canary: "POC-CORPUS-CANARY-FIRED"
+modified: true
+original_ref: >-
+  The upstream pastejacking class pastes an arbitrary command that runs on paste;
+  here the pasted body is the safe canary marker-write only.
+notes: >-
+  Real-effect oracle: feeds the payload through insertFromMimeData and asserts NO
+  submit (CR) reaches the child. A hit = a CR written with no review interposed.

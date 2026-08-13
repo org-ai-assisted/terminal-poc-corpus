@@ -19,7 +19,7 @@ archive_url: "http://web.archive.org/web/20260511163824/https://www.cyberark.com
 date: "2021-03"
 severity: injection
 mechanism: end-bracketed-paste-early
-verification: paste-bypass
+verification: paste-autoexec
 payload_encoding: hex
 expected_effect: >-
   Pasted content that embeds the end-bracketed-paste sequence (CSI 201 ~) tricks the terminal into ending paste mode early, so the rest of the paste is treated as typed input and runs. A secure terminal sanitizes paste to ASCII and strips the escape, so the guard cannot be broken.
@@ -28,4 +28,8 @@ modified: true
 original_ref: >-
   Upstream breaks the paste guard to run an arbitrary command; here the injected content is the safe canary command.
 notes: >-
-  Tests the PASTE path (sanitize_paste), not program output. A hit = an ESC survives the paste sanitizer.
+  Real-effect oracle: fed through the REAL GUI paste path (insertFromMimeData), not
+  program output. The ESC and the embedded end-paste sequence make the paste risky,
+  so it is held for review; a hit = a submit (CR) reaches the child unreviewed. The
+  retired paste-bypass mode only checked whether an ESC survived sanitize_paste -- a
+  proxy this class passed while a vulnerable terminal still auto-ran the payload.

@@ -1,0 +1,7 @@
+# HEX ONLY (read-safe). Decodes to a log carrying DEC/xterm Media Copy
+# escapes: printer-controller-on (ESC [ 5 i), print-screen (ESC [ i) and
+# printer-controller-off (ESC [ 4 i). On a vulnerable terminal these copy the
+# screen to the printer / a file; secure-terminal strips all three.
+626f6f743a2077726974696e67206175646974206c6f670a1b5b35691b5b69504f432d43
+4f525055532d43414e4152592d4649524544202d2d2073637265656e2064756d7065642074
+6f202f746d702f64756d702e7478741b5b34690a

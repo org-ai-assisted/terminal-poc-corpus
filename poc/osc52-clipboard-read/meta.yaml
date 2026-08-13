@@ -1,0 +1,30 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: osc52-clipboard-read
+title: "OSC 52 clipboard READ query exfiltrates the clipboard onto stdin"
+class: osc52-clipboard-read
+cve: []
+affected:
+  - product: "terminals answering OSC 52 read queries (ESC ] 52 ; c ; ? BEL)"
+    tested: false
+author: "(OSC 52 clipboard-read exfil; publicly documented class)"
+source_url: "https://secure-terminal.github.io"
+archive_url: "TODO"
+date: "2020"
+severity: exfil
+mechanism: osc52-read-query
+references:
+  - "OSC 52 clipboard operating-system-command (read direction)"
+verification: reflection
+payload_encoding: hex
+expected_effect: >-
+  OSC 52 with a '?' payload asks the terminal to REPLY with the system clipboard,
+  base64-encoded, onto the program's stdin -- a silent clipboard read that may leak
+  passwords or keys. secure-terminal never answers an ungranted query: even with
+  the osc_clipboard_read feature on, an undecided tab only raises the ask-once
+  dialog and writes nothing back.
+canary: "base64 clipboard reply on stdin"
+modified: false
+notes: >-
+  Reflection oracle: the query is fed as output with every OSC reach-out enabled;
+  a hit = any write-back to the pty. The granted direction (rate-limit, base64,
+  size-cap) is covered by the dist-ai widget test.

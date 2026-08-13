@@ -1,0 +1,50 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: tui-showcase
+title: "One safe display-only file: a self-labeling board showing every terminal text-attack class"
+class: tui-showcase
+cve: []
+affected:
+  - product: "terminals honouring OSC 0 title, DEC charset, CSI ?1049h alt-screen, OSC 8/9, bidi, combining, fullwidth, and non-ASCII code points"
+    tested: false
+author: "secure-terminal corpus composite (Boucher & Anderson 2021 bidi/homoglyph; CyberArk / Eviatar Gerzi 2021 title+charset; HD Moore 2003 escape classes)"
+source_url: "https://secure-terminal.github.io/comparison/"
+archive_url: "TODO"
+date: "2026-08"
+severity: spoof
+mechanism: composite-display-only-board-osc0-charset-altscreen-osc8-bidi-homoglyph-zerowidth-combining-fullwidth
+payload_encoding: hex
+verification: composite-multiclass
+expected_effect: >-
+  An HONEST, self-labeling educational file that, cat'd at a shell, paints a full-screen
+  "WHAT YOU SEE vs WHAT IS THERE" board where every row NAMES a text-attack class and
+  shows a LIVE example of it: homoglyph (Cyrillic U+0430 and Greek U+03BF), ASCII
+  look-alike (rn->m, no Unicode), bidi override (U+202E flips report cod.exe -> report
+  exe.doc), zero-width (U+200B), invisible/BOM (U+FEFF), combining marks (Zalgo),
+  fullwidth forms (U+FF2x), a control-byte CR + ESC[2K repaint that hides a red FAILED
+  behind a green OK, hidden-by-colour (SGR fg==bg), a DEC line-drawing charset shift, an
+  OSC 8 hyperlink whose visible text (example.com) differs from its target (example.org),
+  an OSC 0 title hijack, a CSI ?1049h alternate-screen switch, and real Greek text as the
+  NON-attack contrast case. It is DISPLAY-ONLY: classes that reach outside the display are
+  deliberately NOT in the board -- a desktop notification (OSC 9), the clipboard (OSC 52),
+  the shell input (DSR reflection) and the reflected-command RCE. Each of those is fired +
+  conformance-tested live in the sandbox by its own PoC, and all are compared on the
+  website; none is shipped as a live cat-able file. So the only state this file changes is
+  the display: the alternate screen (which reset restores) and the window title (which
+  reset does NOT restore -- it persists until you close the terminal or clear it); nothing
+  is copied, typed, executed or destroyed. In a traditional terminal the tricks are invisible;
+  a safe tool reveals them. secure-terminal in CLI mode strips every escape and boxes every
+  non-ASCII
+  byte, so render_output carries no OSC/charset/alt-screen/hyperlink escape and no
+  surviving non-ASCII code point. Verification (composite-multiclass) asserts NONE of the
+  embedded live classes survive: a hit if ANY of the OSC-0/charset escape, the alt-screen
+  escape, the OSC 8 escape, or any non-ASCII code point is left in the render.
+  The ASCII look-alike row is pure ASCII (nothing to strip), so it is present for
+  education but not conformance-checked -- a Unicode-aware tool cannot catch rn->m; only
+  reading character by character does. The OSC 8 link's visible-text-vs-target mismatch is
+  likewise conformance-checked by the dedicated osc8-hyperlink-phishing PoC (a different
+  observable); here the escape's mere survival is what this check covers. The control-byte
+  CR+erase row is likewise not neutralized by the widget render (secure-terminal HONORS a
+  line-local \r by design); the stricter stcat path strips it, so this detector does not
+  claim the widget reveals it -- see expected.md.
+canary: "terminal attack-class demo (safe)"
+modified: false
