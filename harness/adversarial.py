@@ -500,9 +500,16 @@ def main(argv=None):
         if pair is None:
             print('SKIP       %-41s unknown verification mode %r' % (poc_id, mode))
             continue
-        tested += 1
         observe, detector = pair
-        raw = _decode(payload_hex)
+        # payload.hex is untrusted corpus data too (same class as the meta.yaml guard
+        # above): an odd-nibble, non-hex, or non-ASCII file makes _decode raise and would
+        # abort the WHOLE sweep on one bad sibling. Skip that PoC, keep testing the rest.
+        try:
+            raw = _decode(payload_hex)
+        except (binascii.Error, UnicodeDecodeError) as exc:
+            print('SKIP       %-41s undecodable payload.hex: %s' % (poc_id, exc))
+            continue
+        tested += 1
         hit = bool(detector(observe(raw)))
         # UNIVERSAL reflection property (#31 P1): output must NEVER induce an input
         # reply. Applied to EVERY class, not only the reflection PoCs -- feed the
