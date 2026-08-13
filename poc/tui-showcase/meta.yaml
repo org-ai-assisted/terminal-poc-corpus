@@ -29,8 +29,9 @@ expected_effect: >-
   the shell input (DSR reflection) and the reflected-command RCE. Each of those is fired +
   conformance-tested live in the sandbox by its own PoC, and all are compared on the
   website; none is shipped as a live cat-able file. So the only state this file changes is
-  the display: the window title and the alternate screen, both undone by reset; nothing is
-  copied, typed, executed or destroyed. In a traditional terminal the tricks are invisible;
+  the display: the alternate screen (which reset restores) and the window title (which
+  reset does NOT restore -- it persists until you close the terminal or clear it); nothing
+  is copied, typed, executed or destroyed. In a traditional terminal the tricks are invisible;
   a safe tool reveals them. secure-terminal in CLI mode strips every escape and boxes every
   non-ASCII
   byte, so render_output carries no OSC/charset/alt-screen/hyperlink escape and no

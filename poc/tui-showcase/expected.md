@@ -3,7 +3,7 @@
 ## Class
 
 tui-showcase -- a corpus composite: ONE safe, HONEST, self-labeling educational file that
-carries every terminal text-attack class at once, shaped as a full-screen
+carries every DISPLAY-ONLY terminal text-attack class at once, shaped as a full-screen
 "WHAT YOU SEE vs WHAT IS THERE" board. It does NOT impersonate a real product or record;
 its own title and framing say "safe demo", and each row openly names the class it shows.
 
@@ -24,7 +24,6 @@ names a class and shows a live example of it:
 - Hidden by colour (SGR)-- fg == bg, so the text is invisible;
 - Charset shift (DEC)   -- `ESC(0` renders letters as line-drawing;
 - Hyperlink (OSC 8)     -- visible `example.com`, target `https://example.org`;
-- Notification (OSC 9)  -- a desktop notification with safe wording;
 - Title hijack (OSC 0)  -- sets the window title (labeled; effect is the title bar);
 - Alt-screen (?1049h)   -- switches to the alternate screen (labeled; effect is the screen);
 - Honest foreign (Greek)-- real Greek text -- the NON-attack contrast case.
@@ -37,8 +36,10 @@ by its own PoC (`notification-spoof`, `osc52-clipboard-write`, `device-status-re
 `title-report-echoback`), and all are compared -- with the crash/decoder classes -- on
 secure-terminal.github.io. They are not shipped as a live cat-able file.
 
-So the only state this file changes is the DISPLAY: the window title (OSC 0) and the
-alternate screen (?1049h), both undone by `reset`. A plaintext warning is the file's FIRST
+So the only state this file changes is the DISPLAY: the alternate screen (?1049h), which
+`reset` restores, and the window title (OSC 0), which `reset` does NOT restore -- it
+persists until you close the terminal or clear it (`printf '\033]0;\007'`). A plaintext
+warning is the file's FIRST
 bytes, the board runs on the alternate screen (real scrollback preserved), and the footer
 says to run `reset`. Nothing is copied, typed, executed or destroyed.
 

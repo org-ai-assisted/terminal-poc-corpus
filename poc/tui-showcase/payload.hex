@@ -2,8 +2,9 @@
 # DISPLAY-ONLY educational board. Cat'd in a traditional terminal it paints a full-screen
 # "WHAT YOU SEE vs WHAT IS THERE" table where every row NAMES a text-attack class and
 # shows a LIVE example, so plain cat hides the trick and a safe tool reveals it. It
-# changes only the DISPLAY: the window title (OSC 0) and the alternate screen (?1049h),
-# both undone by `reset`. It does NOT touch the clipboard, type at the prompt, or run
+# changes only the DISPLAY: the alternate screen (?1049h), which `reset` restores, and the
+# window title (OSC 0), which `reset` does NOT restore -- clear it with `printf '\033]0;\007'`.
+# It does NOT touch the clipboard, type at the prompt, or run
 # anything. Live display classes: homoglyph (Cyrillic + Greek), ASCII look-alike, bidi
 # (U+202E), zero-width (U+200B), BOM (U+FEFF), combining/Zalgo, fullwidth (U+FF2x),
 # control-byte CR+erase, hidden-by-colour (SGR), DEC charset shift, OSC 8 hyperlink,
