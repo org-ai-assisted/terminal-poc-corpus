@@ -345,18 +345,30 @@ def _det_notify(texts):
     return any(POC_TOKEN in str(text) for text in texts)
 
 
+def _esc_body_leak(text, bodies):
+    """Defense-in-depth for the escape-survival detectors: a broken neutralizer that
+    mangles the ESC introducer but LEAKS the sequence body as ASCII text (e.g. '[5i',
+    '[?1049h') would slip an \\x1b-keyed check. These bodies are distinctive to the class's
+    payload, so flagging them adds no false positive against that PoC."""
+    return any(body in text for body in bodies)
+
+
 def _det_altscreen(text):
-    # a hit: an alternate-screen enable escape survived, so the terminal would switch
-    # to the alt buffer -- a stuck full-screen hijack. secure-terminal strips it.
-    return any(seq in text for seq in ('\x1b[?1049h', '\x1b[?1047h', '\x1b[?47h'))
+    # a hit: an alternate-screen enable escape survived, so the terminal would switch to
+    # the alt buffer -- a stuck full-screen hijack. secure-terminal strips it. The body-
+    # leak arm also fires if a mangled-ESC neutralizer leaks the '[?1049h' body as text.
+    return (any(seq in text for seq in ('\x1b[?1049h', '\x1b[?1047h', '\x1b[?47h'))
+            or _esc_body_leak(text, ('[?1049h', '[?1047h', '[?47h')))
 
 
 def _det_screen_dump(text):
     # a hit: a Media Copy / print sequence survived the render (CSI ... i -- e.g. the
     # printer-controller-on 'CSI 5 i', print-screen 'CSI i', printer-off 'CSI 4 i'),
     # so a vulnerable terminal would dump the screen to its printer / a file.
-    # secure-terminal strips every escape, so none survives.
-    return re.search(r'\x1b\[[0-9;?]*i', text) is not None
+    # secure-terminal strips every escape, so none survives. The body-leak arm also fires
+    # if a mangled-ESC neutralizer leaks the distinctive '[5i'/'[4i' body as text.
+    return (re.search(r'\x1b\[[0-9;?]*i', text) is not None
+            or _esc_body_leak(text, ('[5i', '[4i')))
 
 
 def _det_crafted(text):
@@ -468,8 +480,21 @@ def self_test():
             'fires on a vulnerable case' if fired else 'DID NOT FIRE (tautology!)'))
         if not fired:
             broken.append(mode)
+    # Defense-in-depth: the escape-survival detectors with a distinctive body must ALSO
+    # fire when a broken neutralizer mangles the ESC introducer but leaks the sequence
+    # body as ASCII text. A pre-guard detector keyed only on \x1b misses this, so this
+    # canary FAILS on the old code.
+    body_broken = []
+    for mode, leak in (('screen-hijack', 'log[?1049h[2J' + POC_TOKEN),
+                       ('screen-dump-to-file', 'log[5i[i' + POC_TOKEN)):
+        fired = bool(_MODES[mode][1](leak))
+        print('%-9s %-20s body-leak canary %s' % (
+            'TRIGGERS' if fired else 'DEAD', mode,
+            'fires on a leaked escape body' if fired else 'DID NOT FIRE (guard missing!)'))
+        if not fired:
+            body_broken.append(mode)
     print('-- %d/%d class canaries trigger' % (len(_MODES) - len(broken), len(_MODES)))
-    return 1 if broken else 0
+    return 1 if (broken or body_broken) else 0
 
 
 def main(argv=None):
