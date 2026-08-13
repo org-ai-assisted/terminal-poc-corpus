@@ -118,17 +118,23 @@ def _feed_output(term, raw):
             buf = memoryview(raw)
             while buf:
                 buf = buf[os.write(write_fd, buf):]
-        except OSError:
-            pass          # reader closed early (a huge payload past the single read) -> EPIPE
         finally:
             os.close(write_fd)
+    # _on_readable() consumes ONE 65536-byte read per call, so a payload larger than
+    # that (or the pipe buffer) needs REPEATED reads. Drain to EOF -- a zero-byte read
+    # fires shell_exited -- so a detector sees the WHOLE payload; reading only the
+    # first chunk could leave a later-class attack in the unread tail and falsely
+    # report it neutralized.
+    drained = []
+    term.shell_exited.connect(lambda *_: drained.append(True))
     writer = threading.Thread(target=_pump)
     writer.start()
     try:
-        term._on_readable()
+        while not drained:
+            term._on_readable()
     finally:
         term._fd = old
-        os.close(read_fd)     # unblocks _pump with EPIPE if it is still writing
+        os.close(read_fd)
         writer.join()
 
 
