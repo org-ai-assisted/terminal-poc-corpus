@@ -50,7 +50,7 @@ try:
     import yaml                                                  # noqa: E402
 except Exception as exc:  # pylint: disable=broad-except
     sys.stderr.write('coverage_audit: need python3-yaml: %s\n' % exc)
-    raise SystemExit(2)
+    raise SystemExit(2) from exc
 
 
 def _log(msg):
@@ -102,7 +102,9 @@ def audit():
     failures = 0
 
     # (0) no PoC may declare a class the schema does not know (drift the other way).
-    for cls in sorted(by_class):
+    # A meta.yaml with NO `class` key yields a None key here; sort it last rather than
+    # crash on a str/None comparison, and report it cleanly as a schema violation.
+    for cls in sorted(by_class, key=lambda c: (c is None, c or '')):
         if cls not in classes:
             _log('FAIL  poc class %r is not in the schema enum' % cls)
             failures += 1
@@ -129,7 +131,7 @@ def audit():
             continue                            # every PoC unwired -> already counted
         poc_id, mode = rep
         # (3) REAL-EFFECT, NOT A PROXY
-        real, fires, clears = _is_real_effect(mode, _payload_for(poc_id))
+        real, fires, _clears = _is_real_effect(mode, _payload_for(poc_id))
         if real:
             _log('ok    %-26s [%s] real-effect oracle (fires on vulnerable, clears '
                  'on secure-terminal) via %s' % (cls, mode, poc_id))
@@ -148,22 +150,22 @@ def canary():
     verification mode whose detector greps the RAW payload (ignoring what secure-
     terminal did) -- exactly the proxy the audit must catch -- and confirm
     _is_real_effect reports it as NOT real-effect."""
-    mode = '__canary_proxy__'
+    proxy_mode = '__canary_proxy__'
     # observable: hand the detector the raw payload UNCHANGED (no secure-terminal).
     # detector: a static substring grep for an escape byte -> fires on any payload
     # carrying one, whether or not secure-terminal neutralized it.
-    adv._MODES[mode] = (lambda payload: payload.decode('latin-1'),
-                        lambda text: '\x1b' in text)
-    adv._vulnerable_observable_orig = adv._vulnerable_observable
+    adv._MODES[proxy_mode] = (lambda payload: payload.decode('latin-1'),
+                              lambda text: '\x1b' in text)
+    orig_vulnerable = adv._vulnerable_observable
 
-    def _vuln(m):
-        if m == mode:
+    def _vuln(mode):
+        if mode == proxy_mode:
             return 'log\x1bX'                   # a surviving escape -> the proxy fires
-        return adv._vulnerable_observable_orig(m)
+        return orig_vulnerable(mode)
     adv._vulnerable_observable = _vuln
     try:
         payload = b'log\x1b[?1049hPOC'          # carries an escape secure-terminal strips
-        real, fires, clears = _is_real_effect(mode, payload)
+        real, fires, clears = _is_real_effect(proxy_mode, payload)
         # the proxy FIRES on the vulnerable case but ALSO still fires on the raw
         # payload (it never ran secure-terminal), so clears_on_real is False and it
         # is NOT real-effect. If the audit called this real, it would be blind to a
@@ -175,8 +177,8 @@ def canary():
                 fires, clears))
         return 0 if ok else 1
     finally:
-        del adv._MODES[mode]
-        adv._vulnerable_observable = adv._vulnerable_observable_orig
+        del adv._MODES[proxy_mode]
+        adv._vulnerable_observable = orig_vulnerable
 
 
 def main(argv=None):

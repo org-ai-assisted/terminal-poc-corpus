@@ -9,7 +9,7 @@ The banner and how-to are tailored to the PoC's verification mode -- one size do
 fit all:
   - decoder-crash / denial-of-service are REAL, unmodified payloads that can crash or
     freeze a vulnerable terminal, so they carry a CAUTION, never the SAFE wording;
-  - paste-autoexec / cli-paste-autoexec fire only through the PASTE path, not `cat`.
+  - paste-autoexec fires only through the PASTE path, not `cat`.
 It writes LIVE terminal-attack bytes, so it refuses to run outside a sandbox unless
 overridden. See ../SAFETY.md.
 
@@ -29,7 +29,7 @@ try:
     import yaml
 except ImportError as exc:                                       # pragma: no cover
     sys.stderr.write('poc-corpus: need python3-yaml: %s\n' % exc)
-    raise SystemExit(2)
+    raise SystemExit(2) from exc
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,9 +40,9 @@ _ID_RE = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*$')
 # (real, unmodified payloads -- NOT canary-forked, NOT `reset`-recoverable).
 _DESTRUCTIVE_MODES = frozenset({'decoder-crash', 'denial-of-service'})
 
-# verification modes that fire ONLY through the paste path (GUI paste or CLI stdin
-# burst), never from `cat` -- program output does not enter a paste.
-_PASTE_MODES = frozenset({'paste-autoexec', 'cli-paste-autoexec'})
+# verification modes that fire ONLY through the paste path (GUI paste), never from
+# `cat` -- program output does not enter a paste.
+_PASTE_MODES = frozenset({'paste-autoexec'})
 
 
 def _confined():
@@ -86,9 +86,8 @@ def _ids():
 
 def _safety_note(mode, out):
     """Per-verification-mode banner + how-to. Destructive classes get a CAUTION;
-    the paste modes (paste-autoexec / cli-paste-autoexec) are fed via the paste path;
-    all others are cat-and-compare SAFE with the harness as the reliable fire/detect
-    path. Command paths are shell-quoted."""
+    paste-autoexec is fed via the GUI paste path; all others are cat-and-compare SAFE
+    with the harness as the reliable fire/detect path. Command paths are shell-quoted."""
     q = shlex.quote(out)
     if mode in _DESTRUCTIVE_MODES:
         kind = 'a crash/decoder-overflow' if mode == 'decoder-crash' else 'a denial-of-service'

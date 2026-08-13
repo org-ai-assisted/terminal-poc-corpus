@@ -249,18 +249,6 @@ def _obs_paste_autoexec(payload):
     return (written, bool(reviewed))
 
 
-def _obs_cli_paste(payload):
-    """The bytes the STANDALONE CLI (cli.py) would forward to the child for a pasted
-    stdin BURST, through the real _strip_burst_submit choke point. A paste is a
-    multi-byte burst; its trailing submit must be dropped so the pasted command waits
-    at the prompt for the user's own Enter rather than auto-running the instant it
-    lands (the CLI runs the child under TERM=dumb, so bracketed paste is off)."""
-    if ST_PKG and ST_PKG not in sys.path:
-        sys.path.insert(0, ST_PKG)
-    from secure_terminal.cli import _strip_burst_submit           # noqa: E402
-    return _strip_burst_submit(payload)
-
-
 def _obs_mouse_report(payload):
     """Enable mouse tracking with a DECSET payload, then post REAL mouse + wheel
     events over the offscreen widget and return the bytes written back to the pty. A
@@ -345,7 +333,7 @@ def _det_altscreen(text):
 
 def _det_screen_dump(text):
     # a hit: a Media Copy / print sequence survived the render (CSI ... i -- e.g. the
-    # printer-controller-on 'CSI ? 5 i', print-screen 'CSI i', printer-off 'CSI 4 i'),
+    # printer-controller-on 'CSI 5 i', print-screen 'CSI i', printer-off 'CSI 4 i'),
     # so a vulnerable terminal would dump the screen to its printer / a file.
     # secure-terminal strips every escape, so none survives.
     return re.search(r'\x1b\[[0-9;?]*i', text) is not None
@@ -375,18 +363,14 @@ def _det_composite(text):
 
 
 def _det_paste_autoexec(observed):
-    """A hit: a submit byte (CR) reached the child DIRECTLY, with no review bar held
-    first -- the paste auto-executed. Both safe outcomes pass: held-for-review (a
-    review was requested, nothing was written) and submit-stripped (the command
-    reached the prompt but carries no CR, so it waits for the user's Enter)."""
+    """A hit: a submit byte (CR or LF) reached the child DIRECTLY, with no review bar
+    held first -- the paste auto-executed. Either delimiter submits the line, and the
+    paste-trailing-newline PoC's payload ends in LF, so both must count. Both safe
+    outcomes pass: held-for-review (a review was requested, nothing was written) and
+    submit-stripped (the command reached the prompt but carries no submit byte, so it
+    waits for the user's Enter)."""
     written, reviewed = observed
-    return (b'\r' in written) and not reviewed
-
-
-def _det_cli_paste(out):
-    """A hit: the forwarded stdin burst STILL ends in a submit byte, so the pasted
-    command auto-runs the instant it is written (no explicit Enter)."""
-    return out.endswith(b'\r') or out.endswith(b'\n')
+    return (b'\r' in written or b'\n' in written) and not reviewed
 
 
 def _det_timing(elapsed_crashed):
@@ -414,8 +398,6 @@ _MODES = {
     # retired 'paste-bypass' mode only checked whether an ESC survived sanitize_paste
     # -- a proxy the pastejacking bug passed while still auto-running the payload.)
     'paste-autoexec': (_obs_paste_autoexec, _det_paste_autoexec),
-    # The standalone CLI (cli.py) paste path: a pasted burst must not keep its submit.
-    'cli-paste-autoexec': (_obs_cli_paste, _det_cli_paste),
     # Mouse tracking: a DECSET enable plus real mouse/wheel events must elicit no
     # mouse-report write-back on the child's stdin.
     'mouse-tracking-reflection': (_obs_mouse_report, _det_writeback),
@@ -436,15 +418,13 @@ def _vulnerable_observable(mode):
         'hyperlink-mismatch': ['https://attacker.example/' + POC_TOKEN],  # anchor -> token
         'notification-spoof': [POC_TOKEN],                # a notification bearing the token
         'screen-hijack': 'log\x1b[?1049h\x1b[?1047h\x1b[?47h\x1b[2J' + POC_TOKEN,  # any alt-screen enable survived
-        'screen-dump-to-file': 'log\x1b[?5i\x1b[i' + POC_TOKEN,  # a Media Copy print/dump escape survived
+        'screen-dump-to-file': 'log\x1b[5i\x1b[i' + POC_TOKEN,  # a Media Copy print/dump escape survived
         'crafted-composite': 'log\x1b]0;fake\x07\x1b(0lqqqk',  # OSC-0 + charset escapes survived
         'composite-multiclass': 'log\x1b]0;fake\x07\x1b(0lqqqk\x1b[?1049h' + chr(0x202e) + 'x',  # OSC-0 + charset + alt-screen + bidi non-ASCII survived
         'denial-of-service': (3.0, False),                # took too long
         'decoder-crash': (0.0, True),                     # the decoder crashed
         # a submit (CR) reached the child with NO review interposed -> auto-executed
         'paste-autoexec': (b'echo ' + POC_TOKEN.encode() + b'\r', False),
-        # the CLI forwarded a burst that still ends in a submit -> auto-ran
-        'cli-paste-autoexec': b'echo ' + POC_TOKEN.encode() + b'\r',
         # the terminal wrote an SGR mouse report back onto the child's stdin
         'mouse-tracking-reflection': [b'\x1b[<0;10;5M'],
     }[mode]

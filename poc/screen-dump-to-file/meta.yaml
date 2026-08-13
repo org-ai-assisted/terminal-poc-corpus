@@ -15,7 +15,7 @@ mechanism: media-copy-printer-controller
 payload_encoding: hex
 verification: screen-dump-to-file
 expected_effect: >-
-  The Media Copy escapes turn the printer controller on (ESC [ ? 5 i), print the
+  The Media Copy escapes turn the printer controller on (ESC [ 5 i), print the
   screen (ESC [ i) and turn it off (ESC [ 4 i). On a terminal that implements
   printer/Media Copy support, output is copied to the configured printer command or
   file, silently exfiltrating on-screen content. secure-terminal has no printer path
