@@ -1,0 +1,27 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: mouse-tracking-reflection
+title: "DECSET mouse tracking: mouse events reflected onto the child's stdin"
+class: mouse-tracking-reflection
+cve: []
+affected:
+  - product: "xterm-family terminals implementing mouse reporting (1000/1002/1003 + 1006)"
+    tested: false
+author: "(xterm mouse-tracking reflection class; publicly documented)"
+source_url: "https://secure-terminal.github.io"
+archive_url: "TODO"
+date: "2020"
+severity: injection
+mechanism: decset-mouse-report
+verification: mouse-tracking-reflection
+payload_encoding: hex
+expected_effect: >-
+  Program output can enable xterm mouse tracking (DECSET ?1003h any-event + ?1006h
+  SGR extended). A terminal that implements it then writes an ESC[<...M/m mouse
+  report onto the child's stdin for every mouse move / click / wheel -- output
+  turning subsequent user pointer motion into injected input. secure-terminal has
+  no mouse-report path, so no mouse action ever writes to the child.
+canary: "ESC[<...M mouse report on stdin"
+modified: false
+notes: >-
+  Real-effect oracle: enable tracking, then post REAL QMouseEvent press/move/release
+  and a QWheelEvent over the widget and spy _write. A hit = any write-back.

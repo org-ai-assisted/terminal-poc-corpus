@@ -91,6 +91,13 @@ jobs:
           python3 harness/run.py --self-test
           python3 harness/adversarial.py --self-test
           python3 harness/adversarial.py
+      - name: Corpus-coverage audit (every schema class has a real-effect oracle)
+        env:
+          SECURE_TERMINAL_REPO: ${{ github.workspace }}/_secure-terminal
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          python3 harness/coverage_audit.py --canary
+          python3 harness/coverage_audit.py
       - name: Acquire reviewed conformance suites (pinned SHAs) + run conformance
         env:
           SECURE_TERMINAL_REPO: ${{ github.workspace }}/_secure-terminal

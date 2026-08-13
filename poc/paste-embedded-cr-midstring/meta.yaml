@@ -1,0 +1,29 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: paste-embedded-cr-midstring
+title: "Pasted string with an embedded carriage return runs a hidden first command"
+class: bracketed-paste-bypass
+cve: []
+affected:
+  - product: "terminals that deliver paste as typed input (no bracketed-paste guard)"
+    tested: false
+author: "(pastejacking class; publicly documented)"
+source_url: "https://secure-terminal.github.io"
+archive_url: "TODO"
+date: "2021"
+severity: injection
+mechanism: paste-embedded-cr
+verification: paste-autoexec
+payload_encoding: hex
+expected_effect: >-
+  A carriage return embedded mid-paste submits everything before it: a terminal
+  that delivers paste as typed input runs that hidden first command the instant the
+  paste lands. secure-terminal holds a paste carrying an embedded CR / newline for
+  review whatever the warn setting, so nothing auto-runs.
+canary: "POC-CORPUS-CANARY-FIRED"
+modified: true
+original_ref: >-
+  The upstream pastejacking class hides an arbitrary command before the CR; here
+  the hidden command is the safe canary marker-write only.
+notes: >-
+  Real-effect oracle: a multi-line / embedded-CR paste MUST be held for review
+  (review requested, nothing written). A hit = a CR reaches the child unreviewed.

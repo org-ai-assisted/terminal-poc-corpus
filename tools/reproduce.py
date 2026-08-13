@@ -9,7 +9,7 @@ The banner and how-to are tailored to the PoC's verification mode -- one size do
 fit all:
   - decoder-crash / denial-of-service are REAL, unmodified payloads that can crash or
     freeze a vulnerable terminal, so they carry a CAUTION, never the SAFE wording;
-  - paste-bypass fires only through the PASTE path, not `cat`.
+  - paste-autoexec / cli-paste-autoexec fire only through the PASTE path, not `cat`.
 It writes LIVE terminal-attack bytes, so it refuses to run outside a sandbox unless
 overridden. See ../SAFETY.md.
 
@@ -39,6 +39,10 @@ _ID_RE = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*$')
 # verification modes whose payloads can CRASH / corrupt / FREEZE a vulnerable terminal
 # (real, unmodified payloads -- NOT canary-forked, NOT `reset`-recoverable).
 _DESTRUCTIVE_MODES = frozenset({'decoder-crash', 'denial-of-service'})
+
+# verification modes that fire ONLY through the paste path (GUI paste or CLI stdin
+# burst), never from `cat` -- program output does not enter a paste.
+_PASTE_MODES = frozenset({'paste-autoexec', 'cli-paste-autoexec'})
 
 
 def _confined():
@@ -82,8 +86,9 @@ def _ids():
 
 def _safety_note(mode, out):
     """Per-verification-mode banner + how-to. Destructive classes get a CAUTION;
-    paste-bypass is fed via the paste path; all others are cat-and-compare SAFE with the
-    harness as the reliable fire/detect path. Command paths are shell-quoted."""
+    the paste modes (paste-autoexec / cli-paste-autoexec) are fed via the paste path;
+    all others are cat-and-compare SAFE with the harness as the reliable fire/detect
+    path. Command paths are shell-quoted."""
     q = shlex.quote(out)
     if mode in _DESTRUCTIVE_MODES:
         kind = 'a crash/decoder-overflow' if mode == 'decoder-crash' else 'a denial-of-service'
@@ -96,16 +101,17 @@ def _safety_note(mode, out):
             '  cat %s        # a vulnerable terminal may crash or hang here\n'
             'Then feed the same file to secure-terminal in CLI mode -- it processes it\n'
             'inert, in bounded time, and never runs the decoder.\n' % (kind, q))
-    if mode == 'paste-bypass':
+    if mode in _PASTE_MODES:
         return (
             'SAFE: no destructive action. But this class fires only through the PASTE\n'
-            'path -- `cat` sends the bytes as program output, which never enters\n'
-            'bracketed-paste mode, so the bypass will NOT trigger from cat. To exercise\n'
-            'it, put the bytes on the clipboard and PASTE them into a THROWAWAY terminal:\n'
+            'path -- `cat` sends the bytes as program output, which never enters a\n'
+            'paste, so it will NOT trigger from cat. To exercise it, put the bytes on\n'
+            'the clipboard and PASTE them into a THROWAWAY terminal:\n'
             '  xclip -selection clipboard < %s    # then Ctrl-Shift-V to paste\n'
             '  reset\n'
-            'Then paste the same into secure-terminal -- its paste sanitizer strips the\n'
-            'escape, so the guard cannot be broken.\n' % q)
+            'Then paste the same into secure-terminal -- it holds a risky paste for\n'
+            'review and strips a single-line paste\'s trailing submit, so a pasted\n'
+            'command never auto-executes.\n' % q)
     return (
         'SAFE: this class touches display / input / clipboard / notification state only\n'
         'and carries no destructive action. `reset` restores the terminal DISPLAY\n'

@@ -1,5 +1,5 @@
 {
-  "count": 25,
+  "count": 31,
   "pocs": [
     {
       "archive_url": "TODO",
@@ -56,6 +56,19 @@
       "severity": "spoof",
       "source_url": "https://secure-terminal.github.io",
       "title": "A charset shift (ESC ( 0, DEC special graphics) makes plain ASCII rend"
+    },
+    {
+      "archive_url": "TODO",
+      "author": "(pastejacking class; publicly documented)",
+      "class": "bracketed-paste-bypass",
+      "cve": [],
+      "date": "2021",
+      "id": "cli-raw-stdin-paste",
+      "mechanism": "cli-stdin-burst-submit",
+      "modified": true,
+      "severity": "injection",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "Standalone CLI: pasted stdin burst must not keep its trailing submit"
     },
     {
       "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
@@ -162,6 +175,19 @@
       "title": "The 2003 title-report echoback resurfaced in iTerm2 < 3"
     },
     {
+      "archive_url": "TODO",
+      "author": "(xterm mouse-tracking reflection class; publicly documented)",
+      "class": "mouse-tracking-reflection",
+      "cve": [],
+      "date": "2020",
+      "id": "mouse-tracking-reflection",
+      "mechanism": "decset-mouse-report",
+      "modified": false,
+      "severity": "injection",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "DECSET mouse tracking: mouse events reflected onto the child's stdin"
+    },
+    {
       "archive_url": "http://web.archive.org/web/20260809144719/https://sw.kovidgoyal.net/kitty/desktop-notifications/",
       "author": "(kitty desktop-notification OSC injection)",
       "class": "notification-spoof",
@@ -203,6 +229,19 @@
       "severity": "rce",
       "source_url": "https://dgl.cx/2023/09/ansi-terminal-security",
       "title": "OSC 50 font set-then-query echoback (command injection)"
+    },
+    {
+      "archive_url": "TODO",
+      "author": "(OSC 52 clipboard-read exfil; publicly documented class)",
+      "class": "osc52-clipboard-read",
+      "cve": [],
+      "date": "2020",
+      "id": "osc52-clipboard-read",
+      "mechanism": "osc52-read-query",
+      "modified": false,
+      "severity": "exfil",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "OSC 52 clipboard READ query exfiltrates the clipboard onto stdin"
     },
     {
       "archive_url": "TODO",
@@ -268,6 +307,32 @@
       "title": "A control sequence with an enormous repeat/count parameter (here inser"
     },
     {
+      "archive_url": "TODO",
+      "author": "(pastejacking class; publicly documented)",
+      "class": "bracketed-paste-bypass",
+      "cve": [],
+      "date": "2021",
+      "id": "paste-embedded-cr-midstring",
+      "mechanism": "paste-embedded-cr",
+      "modified": true,
+      "severity": "injection",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "Pasted string with an embedded carriage return runs a hidden first command"
+    },
+    {
+      "archive_url": "TODO",
+      "author": "(pastejacking class; publicly documented)",
+      "class": "bracketed-paste-bypass",
+      "cve": [],
+      "date": "2021",
+      "id": "paste-trailing-newline-autoexec",
+      "mechanism": "paste-trailing-submit",
+      "modified": true,
+      "severity": "injection",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "Pasted command with a trailing newline auto-executes on paste"
+    },
+    {
       "archive_url": "http://web.archive.org/web/20260417114936/https://nvd.nist.gov/vuln/detail/CVE-2023-40359",
       "author": "(xterm ReGIS reporting overflow)",
       "class": "regis-decoder",
@@ -281,6 +346,19 @@
       "severity": "dos",
       "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-40359",
       "title": "A ReGIS char-set-name reporting sequence overruns a buffer in xterm (t"
+    },
+    {
+      "archive_url": "TODO",
+      "author": "(screen-dump-to-file via Media Copy; documented class)",
+      "class": "screen-dump-to-file",
+      "cve": [],
+      "date": "2024",
+      "id": "screen-dump-to-file",
+      "mechanism": "media-copy-printer-controller",
+      "modified": false,
+      "severity": "exfil",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "DEC/xterm Media Copy (printer controller) copies the screen to a file"
     },
     {
       "archive_url": "http://web.archive.org/web/20260617084902/https://dgl.cx/2023/09/ansi-terminal-security",
