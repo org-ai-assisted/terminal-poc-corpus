@@ -8,9 +8,9 @@ screen-dump-to-file -- documented class (DEC/xterm Media Copy / printer controll
 
 The payload carries DEC/xterm Media Copy escapes: printer-controller-on (ESC [ 5 i),
 print-screen (ESC [ i) and printer-controller-off (ESC [ 4 i). On a terminal that
-implements printer / Media Copy support these copy on-screen output to the configured
-printer command or a file, silently exfiltrating what is on the screen. The canary token
-rides inside the copied region.
+implements printer / Media Copy support, ESC [ 5 i routes the host output stream directly
+to the configured printer command or a file. This means the canary token (and the ESC [ i)
+are streamed directly to the printer, silently exfiltrating them (a stream-to-printer, not a screen dump).
 
 ## Verification (screen-dump-to-file)
 
