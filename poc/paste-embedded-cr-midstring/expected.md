@@ -8,7 +8,7 @@ bracketed-paste-bypass (pastejacking; publicly documented class, no dedicated CV
 
 A carriage return embedded mid-paste submits everything before it. A terminal that
 delivers paste as typed input runs that hidden first command the instant the paste
-lands. This corpus hides only the BENIGN canary marker-write after the CR.
+lands. This corpus hides only the BENIGN canary marker-write before the CR.
 
 ## Verification (paste-autoexec)
 

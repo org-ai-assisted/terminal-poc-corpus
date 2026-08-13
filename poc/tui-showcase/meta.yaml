@@ -47,14 +47,4 @@ expected_effect: >-
   line-local \r by design); the stricter stcat path strips it, so this detector does not
   claim the widget reveals it -- see expected.md.
 canary: "terminal attack-class demo (safe)"
-modified: true
-original_ref: >-
-  A composite assembled by this corpus for the secure-terminal comparison, combining the
-  already-catalogued single-class PoCs (crafted-hostile-log title+colour+charset,
-  trojan-source-bidi, homoglyph, alt-screen-hijack, osc8-hyperlink-phishing) plus
-  zero-width/BOM, combining, fullwidth, an ASCII look-alike and honest foreign text into
-  ONE self-labeling, DISPLAY-ONLY educational board. Every row's wording is benign
-  safe-demonstration text and every row is a class the board can safely fire. The
-  reach-outside classes -- OSC 52 clipboard, DSR/answerback reflection, OSC 9 notification
-  and the reflected-command RCE -- are deliberately NOT in the board; they keep their own
-  dedicated sandbox PoCs, and the board says so.
+modified: false
