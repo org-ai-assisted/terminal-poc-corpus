@@ -363,14 +363,17 @@ def _det_composite(text):
 
 
 def _det_paste_autoexec(observed):
-    """A hit: a submit byte (CR or LF) reached the child DIRECTLY, with no review bar
-    held first -- the paste auto-executed. Either delimiter submits the line, and the
-    paste-trailing-newline PoC's payload ends in LF, so both must count. Both safe
-    outcomes pass: held-for-review (a review was requested, nothing was written) and
-    submit-stripped (the command reached the prompt but carries no submit byte, so it
-    waits for the user's Enter)."""
-    written, reviewed = observed
-    return (b'\r' in written or b'\n' in written) and not reviewed
+    """A hit: a submit byte (CR or LF) reached the child. Either delimiter submits the
+    line, and the paste-trailing-newline PoC's payload ends in LF, so both must count.
+    The submit byte on the child's input IS the auto-exec, so it is a hit REGARDLESS of
+    whether a review was also signalled: a terminal that raises a review bar and STILL
+    forwards CR/LF has auto-executed, and gating the hit on `not reviewed` would let that
+    exact bypass pass. `reviewed` is kept for diagnostics only, never to suppress a hit.
+    Both genuinely safe outcomes still pass because they write NO submit byte to the
+    child: held-for-review (nothing was written) and submit-stripped (the command reached
+    the prompt but carries no submit byte, so it waits for the user's Enter)."""
+    written, _reviewed = observed
+    return b'\r' in written or b'\n' in written
 
 
 def _det_timing(elapsed_crashed):
@@ -423,8 +426,10 @@ def _vulnerable_observable(mode):
         'composite-multiclass': 'log\x1b]0;fake\x07\x1b(0lqqqk\x1b[?1049h' + chr(0x202e) + 'x',  # OSC-0 + charset + alt-screen + bidi non-ASCII survived
         'denial-of-service': (3.0, False),                # took too long
         'decoder-crash': (0.0, True),                     # the decoder crashed
-        # a submit (CR) reached the child with NO review interposed -> auto-executed
-        'paste-autoexec': (b'echo ' + POC_TOKEN.encode() + b'\r', False),
+        # a submit (CR) reached the child EVEN THOUGH a review was signalled -> the
+        # review bar was shown but the line still auto-executed. This is the fail-open
+        # case: a detector that suppressed the hit on `reviewed` would miss it.
+        'paste-autoexec': (b'echo ' + POC_TOKEN.encode() + b'\r', True),
         # the terminal wrote an SGR mouse report back onto the child's stdin
         'mouse-tracking-reflection': [b'\x1b[<0;10;5M'],
     }[mode]
