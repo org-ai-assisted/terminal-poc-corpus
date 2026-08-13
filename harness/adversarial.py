@@ -28,6 +28,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 
 os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -106,16 +107,29 @@ def _feed_output(term, raw):
     read_fd, write_fd = os.pipe()
     old = term._fd
     term._fd = read_fd
+    # Write on a thread so the reader (_on_readable) drains the pipe concurrently.
+    # A payload larger than the ~64 KiB pipe buffer would otherwise block os.write
+    # forever -- nothing has read a byte yet, since _on_readable only runs after the
+    # write returns -- and deadlock the whole sweep. The memoryview loop also finishes
+    # a partial write (a bare os.write may return short). Kept a pipe, not a temp file,
+    # so the decoded live payload stays in RAM and never touches disk (SAFETY.md).
+    def _pump():
+        try:
+            buf = memoryview(raw)
+            while buf:
+                buf = buf[os.write(write_fd, buf):]
+        except OSError:
+            pass          # reader closed early (a huge payload past the single read) -> EPIPE
+        finally:
+            os.close(write_fd)
+    writer = threading.Thread(target=_pump)
+    writer.start()
     try:
-        os.write(write_fd, raw)
-        os.close(write_fd)
-        write_fd = None
         term._on_readable()
     finally:
         term._fd = old
-        os.close(read_fd)
-        if write_fd is not None:
-            os.close(write_fd)
+        os.close(read_fd)     # unblocks _pump with EPIPE if it is still writing
+        writer.join()
 
 
 _APP = None
@@ -476,7 +490,12 @@ def main(argv=None):
             continue
         poc_id = os.path.basename(poc_dir)
         with open(meta_path, encoding='utf-8') as handle:
-            mode = yaml.safe_load(handle).get('verification', 'canary-command')
+            # A corpus meta.yaml is untrusted data: an empty / comment-only / bare-scalar
+            # file makes safe_load return non-dict (or None), and a bare .get() would
+            # AttributeError and abort the whole sweep. Coerce to a mapping first.
+            loaded = yaml.safe_load(handle)
+            mode = (loaded if isinstance(loaded, dict) else {}).get(
+                'verification', 'canary-command')
         pair = _MODES.get(mode)
         if pair is None:
             print('SKIP       %-41s unknown verification mode %r' % (poc_id, mode))
