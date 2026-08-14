@@ -1,0 +1,30 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: stuck-colour-contrast
+title: "A stuck SGR colour (red-on-red, never reset) hides a warning line"
+class: stuck-colour-contrast
+cve: []
+affected:
+  - product: "terminals honouring SGR colour with no automatic reset"
+    tested: false
+author: "(stuck-colour contrast; documented class)"
+source_url: "https://secure-terminal.github.io"
+archive_url: "TODO"
+date: "2021"
+severity: spoof
+mechanism: stuck-sgr-colour
+verification: display-deception
+payload_encoding: hex
+expected_effect: >-
+  A benign log line, then an SGR colour escape (\033[31;41m, red foreground on a red
+  background) that is never reset, so the text that follows is the same colour as its
+  background -- invisible on a traditional terminal, which leaves the colour stuck for
+  every later line too. Here the hidden line is a safe-demonstration warning.
+  secure-terminal's contrast guard forces the text to a legible colour instead of
+  honouring the attacker's stuck red-on-red, so the hidden warning is readable and the
+  colour does not persist past the payload.
+canary: "safe demonstration"
+modified: true
+original_ref: >-
+  The stuck-colour deception is the colour component of the CyberArk 2021 crafted-log
+  class, isolated here into its own single-attack demo with explicit safe-demonstration
+  wording for the secure-terminal comparison.
