@@ -1,5 +1,5 @@
 {
-  "count": 30,
+  "count": 32,
   "pocs": [
     {
       "archive_url": "TODO",
@@ -363,6 +363,19 @@
       "title": "A Sixel image with a repeat operator that overruns a bounds check in x"
     },
     {
+      "archive_url": "TODO",
+      "author": "(stuck-colour contrast; documented class)",
+      "class": "stuck-colour-contrast",
+      "cve": [],
+      "date": "2021",
+      "id": "stuck-colour-contrast",
+      "mechanism": "stuck-sgr-colour",
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://secure-terminal.github.io",
+      "title": "A stuck SGR colour (red-on-red, never reset) hides a warning line"
+    },
+    {
       "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
       "author": "Eviatar Gerzi (CyberArk)",
       "class": "title-change-dos",
@@ -402,6 +415,19 @@
       "severity": "rce",
       "source_url": "https://hdm.io/writing/termulation.txt",
       "title": "Window title set-then-report echoback (command injection)"
+    },
+    {
+      "archive_url": "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "author": "Eviatar Gerzi (CyberArk)",
+      "class": "title-set-hijack",
+      "cve": [],
+      "date": "2021-03",
+      "id": "title-set-hijack",
+      "mechanism": "osc-title-set",
+      "modified": true,
+      "severity": "spoof",
+      "source_url": "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters",
+      "title": "An OSC-0 escape silently sets the window/tab title from program output"
     },
     {
       "archive_url": "http://web.archive.org/web/20260417200200/https://github.com/nickboucher/trojan-source",
