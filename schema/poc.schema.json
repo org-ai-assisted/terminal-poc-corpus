@@ -83,6 +83,8 @@
         "parser-dos",
         "alt-screen-hijack",
         "crafted-hostile-log",
+        "stuck-colour-contrast",
+        "title-set-hijack",
         "tui-showcase"
       ],
       "type": "string"

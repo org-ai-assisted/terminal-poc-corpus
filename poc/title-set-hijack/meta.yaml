@@ -12,7 +12,7 @@ archive_url: "http://web.archive.org/web/20260511163824/https://www.cyberark.com
 date: "2021-03"
 severity: spoof
 mechanism: osc-title-set
-verification: display-deception
+verification: crafted-composite
 payload_encoding: hex
 expected_effect: >-
   A benign log stream that carries, mid-stream, an OSC 0 escape
