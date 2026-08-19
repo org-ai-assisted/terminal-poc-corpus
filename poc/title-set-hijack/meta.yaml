@@ -1,0 +1,28 @@
+# See ../../schema/poc.schema.json and ../../SAFETY.md.
+id: title-set-hijack
+title: "An OSC-0 escape silently sets the window/tab title from program output"
+class: title-set-hijack
+cve: []
+affected:
+  - product: "terminals honouring OSC 0 / OSC 2 title-set from output"
+    tested: false
+author: "Eviatar Gerzi (CyberArk)"
+source_url: "https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters"
+archive_url: "http://web.archive.org/web/20260511163824/https://www.cyberark.com/resources/threat-research-blog/dont-trust-this-title-abusing-terminal-emulators-with-ansi-escape-characters"
+date: "2021-03"
+severity: spoof
+mechanism: osc-title-set
+verification: crafted-composite
+payload_encoding: hex
+expected_effect: >-
+  A benign log stream that carries, mid-stream, an OSC 0 escape
+  (\033]0;example.com -- safe demonstration\007). A traditional terminal honours it
+  silently and the window/tab title changes to text the program chose -- a spoof, since
+  the title is trusted UI chrome. secure-terminal strips the OSC title-set, so the title
+  is unchanged and a banner flags the blocked escape.
+canary: "safe demonstration"
+modified: true
+original_ref: >-
+  The title-set spoof is the OSC-0 component of the CyberArk 2021 crafted-log class,
+  isolated here into its own single-attack demo with explicit safe-demonstration wording
+  for the secure-terminal comparison.
