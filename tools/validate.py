@@ -139,6 +139,14 @@ def main():
             continue
         with open(meta_path, encoding='utf-8') as fh:
             meta = yaml.safe_load(fh)
+        # safe_load returns None for an empty/comment-only file and a list/scalar for
+        # non-mapping YAML; meta.get(...) below would then raise AttributeError uncaught,
+        # crashing the whole run mid-loop and silently skipping every later PoC. Report it
+        # as this PoC's FAIL (the file's own per-PoC pattern) and move on.
+        if not isinstance(meta, dict):
+            print('FAIL %s: meta.yaml is empty or not a YAML mapping' % poc_id)
+            errors += 1
+            continue
         problems = [e.message for e in validator.iter_errors(meta)]
         if meta.get('id') != poc_id:
             problems.append("id %r != directory name %r" % (meta.get('id'), poc_id))
