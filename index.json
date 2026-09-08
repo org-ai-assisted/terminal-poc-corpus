@@ -2,8 +2,8 @@
   "count": 32,
   "pocs": [
     {
-      "archive_url": "TODO",
-      "author": "(alt-screen stuck-full-screen; documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "alt-screen-hijack",
       "cve": [],
       "date": "2024",
@@ -11,7 +11,7 @@
       "mechanism": "alt-screen-no-restore",
       "modified": false,
       "severity": "dos",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "An unrestored alternate-screen switch leaves a terminal stuck full-screen"
     },
     {
@@ -45,8 +45,8 @@
       "title": "Pasted content that embeds the end-bracketed-paste sequence (CSI 201 ~"
     },
     {
-      "archive_url": "TODO",
-      "author": "(charset-shift deception; documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "charset-shift-deception",
       "cve": [],
       "date": "2020",
@@ -54,7 +54,7 @@
       "mechanism": "dec-special-graphics-shift",
       "modified": false,
       "severity": "spoof",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "A charset shift (ESC ( 0, DEC special graphics) makes plain ASCII rend"
     },
     {
@@ -71,8 +71,8 @@
       "title": "A crafted log hijacks the title, stuck colour, and charset in one stream"
     },
     {
-      "archive_url": "TODO",
-      "author": "(cursor-overwrite deception; documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "cursor-addressing-spoof",
       "cve": [],
       "date": "2020",
@@ -80,7 +80,7 @@
       "mechanism": "cursor-up-erase-overwrite",
       "modified": false,
       "severity": "spoof",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "Cursor addressing (cursor-up + erase-line + rewrite) overwrites earlie"
     },
     {
@@ -101,7 +101,7 @@
       "title": "DECRQSS status-request reflection (near-arbitrary input injection)"
     },
     {
-      "archive_url": "TODO",
+      "archive_url": "http://web.archive.org/web/20260312234903/https://nvd.nist.gov/vuln/detail/CVE-2021-33477",
       "author": "(rxvt-unicode DSR/colour-query newline)",
       "class": "device-status-reflection",
       "cve": [
@@ -162,8 +162,8 @@
       "title": "The 2003 title-report echoback resurfaced in iTerm2 < 3"
     },
     {
-      "archive_url": "TODO",
-      "author": "(xterm mouse-tracking reflection class; publicly documented)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "mouse-tracking-reflection",
       "cve": [],
       "date": "2020",
@@ -171,7 +171,7 @@
       "mechanism": "decset-mouse-report",
       "modified": false,
       "severity": "injection",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "DECSET mouse tracking: mouse events reflected onto the child's stdin"
     },
     {
@@ -218,8 +218,8 @@
       "title": "OSC 50 font set-then-query echoback (command injection)"
     },
     {
-      "archive_url": "TODO",
-      "author": "(OSC 52 clipboard-read exfil; publicly documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "osc52-clipboard-read",
       "cve": [],
       "date": "2020",
@@ -227,12 +227,12 @@
       "mechanism": "osc52-read-query",
       "modified": false,
       "severity": "exfil",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "OSC 52 clipboard READ query exfiltrates the clipboard onto stdin"
     },
     {
-      "archive_url": "TODO",
-      "author": "(OSC 52 clipboard-write abuse; publicly documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "osc52-clipboard-write",
       "cve": [],
       "date": "2020",
@@ -240,7 +240,7 @@
       "mechanism": "osc52-clipboard-set",
       "modified": true,
       "severity": "spoof",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "OSC 52 silent clipboard overwrite (paste hijack)"
     },
     {
@@ -294,8 +294,8 @@
       "title": "A control sequence with an enormous repeat/count parameter (here inser"
     },
     {
-      "archive_url": "TODO",
-      "author": "(pastejacking class; publicly documented)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "bracketed-paste-bypass",
       "cve": [],
       "date": "2021",
@@ -303,12 +303,12 @@
       "mechanism": "paste-embedded-cr",
       "modified": true,
       "severity": "injection",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "Pasted string with an embedded carriage return runs a hidden first command"
     },
     {
-      "archive_url": "TODO",
-      "author": "(pastejacking class; publicly documented)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "bracketed-paste-bypass",
       "cve": [],
       "date": "2021",
@@ -316,7 +316,7 @@
       "mechanism": "paste-trailing-submit",
       "modified": true,
       "severity": "injection",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "Pasted command with a trailing newline auto-executes on paste"
     },
     {
@@ -335,8 +335,8 @@
       "title": "A ReGIS char-set-name reporting sequence overruns a buffer in xterm (t"
     },
     {
-      "archive_url": "TODO",
-      "author": "(screen-dump-to-file via Media Copy; documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "screen-dump-to-file",
       "cve": [],
       "date": "2024",
@@ -344,7 +344,7 @@
       "mechanism": "media-copy-printer-controller",
       "modified": false,
       "severity": "exfil",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "DEC/xterm Media Copy (printer controller) copies the screen to a file"
     },
     {
@@ -363,8 +363,8 @@
       "title": "A Sixel image with a repeat operator that overruns a bounds check in x"
     },
     {
-      "archive_url": "TODO",
-      "author": "(stuck-colour contrast; documented class)",
+      "archive_url": "http://web.archive.org/web/20260826142350/https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
+      "author": "(project-authored demonstration; class documented in xterm ctlseqs)",
       "class": "stuck-colour-contrast",
       "cve": [],
       "date": "2021",
@@ -372,7 +372,7 @@
       "mechanism": "stuck-sgr-colour",
       "modified": true,
       "severity": "spoof",
-      "source_url": "https://secure-terminal.github.io",
+      "source_url": "https://invisible-island.net/xterm/ctlseqs/ctlseqs.html",
       "title": "A stuck SGR colour (red-on-red, never reset) hides a warning line"
     },
     {
@@ -445,7 +445,7 @@
       "title": "Trojan-Source bidirectional-override deception"
     },
     {
-      "archive_url": "TODO",
+      "archive_url": "http://web.archive.org/web/20260905053007/https://secure-terminal.github.io/comparison/",
       "author": "secure-terminal corpus composite (Boucher & Anderson 2021 bidi/homoglyph; CyberArk / Eviatar Gerzi 2021 title+charset; HD Moore 2003 escape classes)",
       "class": "tui-showcase",
       "cve": [],
