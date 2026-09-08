@@ -1,0 +1,7 @@
+# Auto-regeneration manifest (consumed by the private-ai-config global pre-commit hook).
+# Format: OUTPUT-GLOB | SOURCE-GLOB | COMMAND  (fnmatch globs; COMMAND runs via bash at repo top).
+# On any commit that stages a matching source (or output), COMMAND runs and the changed
+# OUTPUT-GLOB files are re-staged -- so a committed derived file can never drift from its
+# source. The CI "index.json up to date" + payload-sync checks stay as a backstop that never fires.
+index.json | poc/*/meta.yaml | python3 tools/build_index.py > index.json
+poc/*/payload.b64 | poc/*/payload.hex | python3 tools/build_payloads.py
